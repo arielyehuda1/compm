@@ -23,7 +23,7 @@ int|float|void|write|read|optional|while|do|if|then|else|return			showRes();
 {letter}+(_|{digit}|{letter})*							showToken("id");
 {digit}+                    							showToken("integernum");
 {digit}+\.{digit}+             							showToken("realnum");
-\"(?:\\\"|[^"])*\"								showStr("str");
+\"(?:\\\"|[^"\n])*\"								showStr("str");
 [\n\r]+										newLine();
 ==|<>|<|<=|>|>=									showToken("relop");
 \+|\-										showToken("addop");

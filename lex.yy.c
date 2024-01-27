@@ -452,22 +452,22 @@ static yyconst YY_CHAR yy_ec[256] =
 
 static yyconst YY_CHAR yy_meta[39] =
     {   0,
-        1,    1,    2,    2,    1,    1,    1,    1,    1,    1,
-        1,    1,    1,    1,    3,    1,    1,    1,    3,    1,
-        3,    3,    3,    3,    3,    3,    3,    3,    3,    3,
-        3,    3,    3,    3,    3,    3,    3,    1
+        1,    1,    2,    3,    1,    1,    1,    1,    1,    1,
+        1,    1,    1,    1,    4,    1,    1,    1,    4,    1,
+        4,    4,    4,    4,    4,    4,    4,    4,    4,    4,
+        4,    4,    4,    4,    4,    4,    4,    1
     } ;
 
 static yyconst flex_uint16_t yy_base[76] =
     {   0,
-        0,    0,  173,  188,  188,   36,   38,  188,   37,    0,
-      164,  188,  188,   31,   30,  153,  142,   30,   34,   35,
+        0,    0,  173,  190,  190,   36,   38,  190,   37,    0,
+      164,  190,  190,   31,   30,  153,  142,   30,   34,   35,
        37,   45,   38,   47,   46,   58,   60,  103,   73,   74,
-      188,   76,    0,  188,   96,   70,  188,    0,   63,   72,
-       74,   76,   83,   84,   87,   95,   99,  107,  108,  188,
+      190,   76,    0,  190,   96,   70,  190,    0,   63,   72,
+       74,   76,   83,   84,   87,   95,   99,  107,  108,  190,
        95,   88,  109,   78,  105,  114,  109,  113,  122,  121,
        91,  118,  131,  128,  131,  132,  137,  142,  146,  147,
-      188,  181,  184,   87,   51
+      190,  181,  185,   86,   50
     } ;
 
 static yyconst flex_int16_t yy_def[76] =
@@ -482,7 +482,7 @@ static yyconst flex_int16_t yy_def[76] =
         0,   71,   71,   71,   71
     } ;
 
-static yyconst flex_uint16_t yy_nxt[227] =
+static yyconst flex_uint16_t yy_nxt[229] =
     {   0,
         4,    5,    6,    7,    8,    9,   10,   11,    5,   12,
        13,   13,    4,   12,   14,   15,   16,   17,   18,    4,
@@ -503,15 +503,15 @@ static yyconst flex_uint16_t yy_nxt[227] =
        39,   40,   39,   39,   40,   40,   39,   39,   37,   68,
        67,   39,   39,   39,   39,   69,   39,   70,   39,   37,
        40,   34,   71,   71,   40,   71,   71,   71,   71,   39,
-       39,   30,   30,   30,   33,   71,   33,    3,   71,   71,
+       39,   30,   71,   30,   30,   33,   71,   71,   33,    3,
        71,   71,   71,   71,   71,   71,   71,   71,   71,   71,
 
        71,   71,   71,   71,   71,   71,   71,   71,   71,   71,
        71,   71,   71,   71,   71,   71,   71,   71,   71,   71,
-       71,   71,   71,   71,   71,   71
+       71,   71,   71,   71,   71,   71,   71,   71
     } ;
 
-static yyconst flex_int16_t yy_chk[227] =
+static yyconst flex_int16_t yy_chk[229] =
     {   0,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
         1,    1,    1,    1,    1,    1,    1,    1,    1,    1,
@@ -532,18 +532,18 @@ static yyconst flex_int16_t yy_chk[227] =
        59,   62,   63,   64,   65,   66,   65,   66,   17,   64,
        63,   67,   65,   66,   63,   67,   68,   69,   70,   16,
        68,   11,    3,    0,   70,    0,    0,    0,    0,   69,
-       70,   72,   72,   72,   73,    0,   73,   71,   71,   71,
+       70,   72,    0,   72,   72,   73,    0,    0,   73,   71,
        71,   71,   71,   71,   71,   71,   71,   71,   71,   71,
 
        71,   71,   71,   71,   71,   71,   71,   71,   71,   71,
        71,   71,   71,   71,   71,   71,   71,   71,   71,   71,
-       71,   71,   71,   71,   71,   71
+       71,   71,   71,   71,   71,   71,   71,   71
     } ;
 
 /* Table of booleans, true if rule could match eol. */
 static yyconst flex_int32_t yy_rule_can_match_eol[18] =
     {   0,
-0, 0, 0, 0, 1, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,     };
+0, 0, 0, 0, 0, 1, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0, 0,     };
 
 static yy_state_type yy_last_accepting_state;
 static char *yy_last_accepting_cpos;
@@ -559,8 +559,8 @@ int yy_flex_debug = 0;
 #define YY_MORE_ADJ 0
 #define YY_RESTORE_YY_MORE_OFFSET
 char *yytext;
-#line 1 "flex_example1.lex"
-#line 2 "flex_example1.lex"
+#line 1 "part1.lex"
+#line 2 "part1.lex"
 #include <stdio.h>
 #include <string.h>
 void showToken(char *);
@@ -787,7 +787,7 @@ YY_DECL
 		}
 
 	{
-#line 21 "flex_example1.lex"
+#line 21 "part1.lex"
 
 #line 793 "lex.yy.c"
 
@@ -822,7 +822,7 @@ yy_match:
 			yy_current_state = yy_nxt[yy_base[yy_current_state] + (unsigned int) yy_c];
 			++yy_cp;
 			}
-		while ( yy_base[yy_current_state] != 188 );
+		while ( yy_base[yy_current_state] != 190 );
 
 yy_find_action:
 		yy_act = yy_accept[yy_current_state];
@@ -858,92 +858,91 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 22 "flex_example1.lex"
+#line 22 "part1.lex"
 showRes();
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 23 "flex_example1.lex"
+#line 23 "part1.lex"
 showToken("id");
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 24 "flex_example1.lex"
+#line 24 "part1.lex"
 showToken("integernum");
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 25 "flex_example1.lex"
+#line 25 "part1.lex"
 showToken("realnum");
 	YY_BREAK
 case 5:
-/* rule 5 can match eol */
 YY_RULE_SETUP
-#line 26 "flex_example1.lex"
+#line 26 "part1.lex"
 showStr("str");
 	YY_BREAK
 case 6:
 /* rule 6 can match eol */
 YY_RULE_SETUP
-#line 27 "flex_example1.lex"
+#line 27 "part1.lex"
 newLine();
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 28 "flex_example1.lex"
+#line 28 "part1.lex"
 showToken("relop");
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 29 "flex_example1.lex"
+#line 29 "part1.lex"
 showToken("addop");
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 30 "flex_example1.lex"
+#line 30 "part1.lex"
 showToken("mulop");
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 31 "flex_example1.lex"
+#line 31 "part1.lex"
 showToken("assign");
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 32 "flex_example1.lex"
+#line 32 "part1.lex"
 showToken("and");
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 33 "flex_example1.lex"
+#line 33 "part1.lex"
 showToken("or");
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 34 "flex_example1.lex"
+#line 34 "part1.lex"
 showToken("not");
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 35 "flex_example1.lex"
+#line 35 "part1.lex"
 showSymbol();
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 36 "flex_example1.lex"
+#line 36 "part1.lex"
 ;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 37 "flex_example1.lex"
+#line 37 "part1.lex"
 showError();                           
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 38 "flex_example1.lex"
+#line 38 "part1.lex"
 ECHO;
 	YY_BREAK
-#line 947 "lex.yy.c"
+#line 946 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1956,7 +1955,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 38 "flex_example1.lex"
+#line 38 "part1.lex"
 
 
 void showRes()
