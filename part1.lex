@@ -5,7 +5,6 @@ void showToken(char *);
 void showRes();
 void showStr(char *name);
 void showSymbol();
-void newLine();
 void showError();
 %}
 
@@ -24,7 +23,7 @@ int|float|void|write|read|optional|while|do|if|then|else|return			showRes();
 {digit}+                    							showToken("integernum");
 {digit}+\.{digit}+             							showToken("realnum");
 \"(?:\\\"|[^"\n])*\"								showStr("str");
-[\n\r]+										newLine();
+[\n\r]+										showSymbol();
 ==|<>|<|<=|>|>=									showToken("relop");
 \+|\-										showToken("addop");
 \*|\/										showToken("mulop");
@@ -53,11 +52,6 @@ void showStr(char *name)
 }
 
 void showSymbol()
-{
-	printf("%s", yytext);
-}
-
-void newLine()
 {
 	printf("%s", yytext);
 }

@@ -567,9 +567,8 @@ void showToken(char *);
 void showRes();
 void showStr(char *name);
 void showSymbol();
-void newLine();
 void showError();
-#line 573 "lex.yy.c"
+#line 572 "lex.yy.c"
 
 #define INITIAL 0
 
@@ -787,9 +786,9 @@ YY_DECL
 		}
 
 	{
-#line 21 "part1.lex"
+#line 20 "part1.lex"
 
-#line 793 "lex.yy.c"
+#line 792 "lex.yy.c"
 
 	while ( /*CONSTCOND*/1 )		/* loops until end-of-file is reached */
 		{
@@ -858,91 +857,91 @@ do_action:	/* This label is used only to access EOF actions. */
 
 case 1:
 YY_RULE_SETUP
-#line 22 "part1.lex"
+#line 21 "part1.lex"
 showRes();
 	YY_BREAK
 case 2:
 YY_RULE_SETUP
-#line 23 "part1.lex"
+#line 22 "part1.lex"
 showToken("id");
 	YY_BREAK
 case 3:
 YY_RULE_SETUP
-#line 24 "part1.lex"
+#line 23 "part1.lex"
 showToken("integernum");
 	YY_BREAK
 case 4:
 YY_RULE_SETUP
-#line 25 "part1.lex"
+#line 24 "part1.lex"
 showToken("realnum");
 	YY_BREAK
 case 5:
 YY_RULE_SETUP
-#line 26 "part1.lex"
+#line 25 "part1.lex"
 showStr("str");
 	YY_BREAK
 case 6:
 /* rule 6 can match eol */
 YY_RULE_SETUP
-#line 27 "part1.lex"
-newLine();
+#line 26 "part1.lex"
+showSymbol();
 	YY_BREAK
 case 7:
 YY_RULE_SETUP
-#line 28 "part1.lex"
+#line 27 "part1.lex"
 showToken("relop");
 	YY_BREAK
 case 8:
 YY_RULE_SETUP
-#line 29 "part1.lex"
+#line 28 "part1.lex"
 showToken("addop");
 	YY_BREAK
 case 9:
 YY_RULE_SETUP
-#line 30 "part1.lex"
+#line 29 "part1.lex"
 showToken("mulop");
 	YY_BREAK
 case 10:
 YY_RULE_SETUP
-#line 31 "part1.lex"
+#line 30 "part1.lex"
 showToken("assign");
 	YY_BREAK
 case 11:
 YY_RULE_SETUP
-#line 32 "part1.lex"
+#line 31 "part1.lex"
 showToken("and");
 	YY_BREAK
 case 12:
 YY_RULE_SETUP
-#line 33 "part1.lex"
+#line 32 "part1.lex"
 showToken("or");
 	YY_BREAK
 case 13:
 YY_RULE_SETUP
-#line 34 "part1.lex"
+#line 33 "part1.lex"
 showToken("not");
 	YY_BREAK
 case 14:
 YY_RULE_SETUP
-#line 35 "part1.lex"
+#line 34 "part1.lex"
 showSymbol();
 	YY_BREAK
 case 15:
 YY_RULE_SETUP
-#line 36 "part1.lex"
+#line 35 "part1.lex"
 ;
 	YY_BREAK
 case 16:
 YY_RULE_SETUP
-#line 37 "part1.lex"
+#line 36 "part1.lex"
 showError();                           
 	YY_BREAK
 case 17:
 YY_RULE_SETUP
-#line 38 "part1.lex"
+#line 37 "part1.lex"
 ECHO;
 	YY_BREAK
-#line 946 "lex.yy.c"
+#line 945 "lex.yy.c"
 case YY_STATE_EOF(INITIAL):
 	yyterminate();
 
@@ -1955,7 +1954,7 @@ void yyfree (void * ptr )
 
 #define YYTABLES_NAME "yytables"
 
-#line 38 "part1.lex"
+#line 37 "part1.lex"
 
 
 void showRes()
@@ -1975,11 +1974,6 @@ void showStr(char *name)
 }
 
 void showSymbol()
-{
-	printf("%s", yytext);
-}
-
-void newLine()
 {
 	printf("%s", yytext);
 }
