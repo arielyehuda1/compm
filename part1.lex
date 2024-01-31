@@ -14,7 +14,7 @@ void showError();
 digit       ([0-9])
 letter      ([a-zA-Z])
 whitespace  ([\t ])
-escaped	    ([\t\n\"])
+escaped	    ([tn"])
 symbols     ([\(\)\{\},;:])
 
 %%
@@ -22,7 +22,7 @@ int|float|void|write|read|optional|while|do|if|then|else|return			showRes();
 {letter}+(_|{digit}|{letter})*							showToken("id");
 {digit}+                    							showToken("integernum");
 {digit}+\.{digit}+             							showToken("realnum");
-\"(?:\\\"|[^"\n])*\"								showStr("str");
+\"(?:\\{escaped}|[^\\\"\n\r])*\"						showStr("str");
 [\n\r]+										showSymbol();
 ==|<>|<|<=|>|>=									showToken("relop");
 \+|\-										showToken("addop");
