@@ -17,13 +17,19 @@ whitespace  ([\t ])
 escaped	    ([tn"])
 symbols     ([\(\)\{\},;:])
 
+id		({letter}+(_|{digit}|{letter})*)
+integernum	({digit}+)
+realnum		({digit}+\.{digit}+)
+str		(\"(?:\\{escaped}|[^\\\"\n\r])*\")
+comment		(#[^\n\r]*)
+
 %%
 int|float|void|write|read|optional|while|do|if|then|else|return			showRes();
-{letter}+(_|{digit}|{letter})*							showToken("id");
-{digit}+                    							showToken("integernum");
-{digit}+\.{digit}+             							showToken("realnum");
-\"(?:\\{escaped}|[^\\\"\n\r])*\"						showStr("str");
-[\n\r]+										showSymbol();
+{id}										showToken("id");
+{integernum}                    						showToken("integernum");
+{realnum}             								showToken("realnum");
+{str}										showStr("str");
+[\n\r]										showSymbol();
 ==|<>|<|<=|>|>=									showToken("relop");
 \+|\-										showToken("addop");
 \*|\/										showToken("mulop");
@@ -32,7 +38,7 @@ int|float|void|write|read|optional|while|do|if|then|else|return			showRes();
 \|\|										showToken("or");
 !										showToken("not");
 {whitespace}|{symbols}								showSymbol();
-#[^\n\r]*			;
+{comment}									;
 .										showError();                           
 %%
 void showRes()

@@ -1,3 +1,4 @@
-<id,x> <assign,=> <integernum,3>
+<id,foo>;
 
-<id,y><assign,=><integernum,2>
+<id,boo>
+Lexical error: '^' in line number 3
