@@ -1,7 +1,6 @@
 %{
 #include <stdio.h>
 #include <string.h>
-void showToken(char *);
 void showError();
 #include "part2_helpers.h"
 %}
