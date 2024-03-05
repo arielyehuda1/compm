@@ -24,7 +24,7 @@ comment		(#[^\n\r]*)
 %%
 int|float|void|write|read|optional|while|do|if|then|else|return	{
 	// In case of reserved word
-	yylval = makeNode(yytext,NULL);
+	yylval = makeNode(yytext,NULL,NULL);
 	// switch case for all possiblities of yytext
 	if(!strcmp(yytext,"int"))
 		return INT;
@@ -55,17 +55,17 @@ int|float|void|write|read|optional|while|do|if|then|else|return	{
 }
 
 {id}	{
-	yylval = makeNode("id",yytext);
+	yylval = makeNode("id",yytext,NULL);
 	return ID;
 }
 
 {integernum}		{
-	yylval = makeNode("integernum",yytext);
+	yylval = makeNode("integernum",yytext,NULL);
 	return INTEGERNUM;
 }
 
 {realnum}  {
-	yylval = makeNode("realnum",yytext);
+	yylval = makeNode("realnum",yytext,NULL);
 	return	REALNUM;
 }
 
@@ -73,52 +73,52 @@ int|float|void|write|read|optional|while|do|if|then|else|return	{
 {str}	   {
 	// may be problematic
 	yytext[strlen(yytext)-1] = 0;
-	yylval = makeNode("str",yytext+1);
+	yylval = makeNode("str",yytext+1,NULL);
 	return	STR;
 }
 
 
 ==|<>|<|<=|>|>=		{
-	yylval = makeNode("relop",yytext);
+	yylval = makeNode("relop",yytext,NULL);
 	return	RELOP;
 }
 
 
 \+|\-		{
-	yylval = makeNode("addop",yytext);
+	yylval = makeNode("addop",yytext,NULL);
 	return	ADDOP;
 }
 
 
 \*|\/		{
-	yylval = makeNode("mulop",yytext);
+	yylval = makeNode("mulop",yytext,NULL);
 	return	MULOP;
 }
 
 =			{
-	yylval = makeNode("assign",yytext);
+	yylval = makeNode("assign",yytext,NULL);
 	return	ASSIGN;
 }
 
 
 &&			{
-	yylval = makeNode("and",yytext);
+	yylval = makeNode("and",yytext,NULL);
 	return	AND;
 }
 
 \|\|		{
-	yylval = makeNode("or",yytext);
+	yylval = makeNode("or",yytext,NULL);
 	return	OR;
 }
 
 
 !			{
-	yylval = makeNode("not",yytext);
+	yylval = makeNode("not",yytext,NULL);
 	return	NOT;
 }
 
 {symbols}	{
-	yylval = makeNode(yytext,NULL);
+	yylval = makeNode(yytext,NULL,NULL);
 	return	yytext[0];
 }
 
