@@ -1,0 +1,152 @@
+/* Bison Prologue*/
+%{
+	#include <iostream>
+	using namespace std;
+	#include "part2_helpers.h"
+
+	int yylex();
+	void yyerror(const char*);
+	ParserNode *parseTree;
+%}
+
+/* Bison Declarations */
+
+%token NUM
+%left '+' '-'
+%left '*'
+
+%right "then" "else" /* Consider alternative (call 911) */
+
+/* Bison Grammar rules */
+%%
+
+PROGRAM : FDEFS		{ parseTree = makeNode("PROGRAM",NULL,$1); }
+;
+
+FDEFS : FDEFS FUNC_DEF_API BLK { $$ = makeNode("FDEFS",NULL,concatList(concatList($1,$2),$3)); }
+	| FDEFS FUNC_DEC_API { $$ = makeNode("FDEFS",NULL,concatList($1,$2)); }
+	| /* epsilon */ { $$ = makeNode("FDEFS",NULL,makeNode("EPSILON",NULL,NULL)); }
+;
+
+FUNC_DEC_API : TYPE id ( ) ; { $$ = makeNode("FUNC_DEC_API",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
+	| TYPE id ( FUNC_ARGLIST ) ;	{ $$ = makeNode("FUNC_DEC_API",NULL,concateList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6)); }
+	| TYPE id ( FUNC_DEC_ARGLIST_OPT ) ; { $$ = makeNode("FUNC_DEC_API",NULL,concateList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6)); }
+	| TYPE id ( FUNC_ARGLIST , FUNC_DEC_ARGLIST_OPT ) ; { $$ = makeNode("FUNC_DEC_API",NULL,concateList(concateList(concateList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6),$7),$8)); }
+;
+
+FUNC_DEC_ARGLIST_OPT : FUNC_DEC_ARGLIST_OPT, DCL_OPT { $$ = makeNode("FUNC_DEC_ARGLIST_OPT",NULL,concatList(concatList($1,$2),$3)); }
+	| DCL_OPT { $$ = makeNode("FUNC_DEC_ARGLIST_OPT",NULL,$1); }
+;
+
+DCL_OPT : id : optional TYPE { $$ = makeNode("DCL_OPT",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
+	| id, DCL_OPT { $$ = makeNode("DCL_OPT",NULL,concatList(concatList($1,$2),$3)); }
+;
+
+FUNC_DEF_API : TYPE id ( ) { $$ = makeNode("FUNC_DEF_API",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
+	| TYPE id ( FUNC_ARGLIST ) { $$ = makeNode("FUNC_DEF_API",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
+	| TYPE id ( FUNC_DEF_ARGLIST_OPT ) { $$ = makeNode("FUNC_DEF_API",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
+	| TYPE id ( FUNC_ARGLIST , FUNC_DEF_ARGLIST_OPT ) { $$ = makeNode("FUNC_DEC_API",NULL,concateList(concateList(concateList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6),$7)); }
+;
+
+FUNC_DEF_ARGLIST_OPT : FUNC_DEF_ARGLIST_OPT , DCL_OPT_VAL { $$ = makeNode("FUNC_DEF_ARGLIST_OPT",NULL,concatList(concatList($1,$2),$3)); }
+	| DCL_OPT_VAL { $$ = makeNode("FUNC_DEF_ARGLIST_OPT",NULL,$1); }
+;
+
+DCL_OPT_VAL : id assign NUM : optional TYPE { $$ = makeNode("DCL_OPT_VAL",NULL,concateList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6)); }
+	| id assign NUM , DCL_OPT_VAL { $$ = makeNode("DCL_OPT_VAL",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
+;
+
+FUNC_ARGLIST : FUNC_ARGLIST , DCL { $$ = makeNode("FUNC_ARGLIST",NULL,concatList(concatList($1,$2),$3)); }
+	| DCL { $$ = makeNode("FUNC_ARGLIST",NULL,$1); }
+;
+
+BLK : { STLIST } { $$ = makeNode("BLK",NULL,concatList(concatList($1,$2),$3)); }
+;
+
+DCL : id : TYPE { $$ = makeNode("DCL",NULL,concatList(concatList($1,$2),$3)); }
+	| id , DCL { $$ = makeNode("DCL",NULL,concatList(concatList($1,$2),$3)); }
+;
+
+TYPE : int { $$ = makeNode("TYPE",NULL,$1); }
+	| float { $$ = makeNode("TYPE",NULL,$1); }
+	| void { $$ = makeNode("TYPE",NULL,$1); }
+;
+
+STLIST : STLIST STMT { $$ = makeNode("STLIST",NULL,concatList($1,$2)); }
+	| /* epsilon */ { $$ = makeNode("STLIST",NULL,makeNode("EPSILON",NULL,NULL)); }
+;
+
+STMT : DCL ; { $$ = makeNode("STMT",NULL,concatList($1,$2)); }
+	| ASSN { $$ = makeNode("STMT",NULL,$1); }
+	| EXP ; { $$ = makeNode("STMT",NULL,concatList($1,$2)); }
+	| CNTRL { $$ = makeNode("STMT",NULL,$1); }
+	| READ { $$ = makeNode("STMT",NULL,$1); }
+	| WRITE { $$ = makeNode("STMT",NULL,$1); }
+	| RETURN { $$ = makeNode("STMT",NULL,$1); }
+	| BLK { $$ = makeNode("STMT",NULL,$1); }
+;
+
+RETURN : return EXP ;
+	| return;
+;
+
+WRITE : write ( EXP ) ;
+	| write ( str ) ;
+;
+
+READ : read ( LVAL ) ;
+;
+
+ASSN : LVAL assign EXP ;
+;
+
+LVAL : id
+;
+
+CNTRL : if BEXP then STMT else STMT
+	| if BEXP then STMT
+	| while BEXP do STMT
+;
+
+BEXP : BEXP or BEXP
+	| BEXP and BEXP
+	| not BEXP
+	| EXP relop EXP
+	| ( BEXP )
+;
+
+EXP : EXP addop EXP
+	| EXP mulop EXP
+	| ( EXP ) 
+	| ( TYPE ) EXP 
+	| id
+	| NUM
+	| CALL
+;
+
+NUM : integernum
+	| realnum
+;
+
+CALL : id ( CALL_ARGS )
+;
+
+CALL_ARGS : CALL_ARGS
+	| /* epsilon */
+;
+
+CALL_ARGSLIST : CALL_ARGLIST , EXP
+	| EXP
+;
+
+%%
+
+/* Bison Epilogue */
+
+void yyerror(const char*){
+	cout << "syntax error" << endl;
+}
+
+int main(){
+	return yyparse();
+}
