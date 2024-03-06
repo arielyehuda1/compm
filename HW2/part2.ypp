@@ -11,11 +11,16 @@
 
 /* Bison Declarations */
 
-%token NUM
-%left '+' '-'
-%left '*'
+%token INT FLOAT VOID OPTIONAL WHILE DO IF ID INTEGERNUM REALNUM STR '(' ')' '{' '}' '[' ']' ',' ';' ':'
+%right ASSIGN
+%left OR
+%left AND
+%left RELOP
+%left ADDOP
+%left MULOP
+%right NOT
 
-%right "then" "else" /* Consider alternative (call 911) */
+%right THEN ELSE /* Consider alternative (call 911) */
 
 /* Bison Grammar rules */
 %%
@@ -28,43 +33,43 @@ FDEFS : FDEFS FUNC_DEF_API BLK { $$ = makeNode("FDEFS",NULL,concatList(concatLis
 	| /* epsilon */ { $$ = makeNode("FDEFS",NULL,makeNode("EPSILON",NULL,NULL)); }
 ;
 
-FUNC_DEC_API : TYPE id ( ) ; { $$ = makeNode("FUNC_DEC_API",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
-	| TYPE id ( FUNC_ARGLIST ) ;	{ $$ = makeNode("FUNC_DEC_API",NULL,concateList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6)); }
-	| TYPE id ( FUNC_DEC_ARGLIST_OPT ) ; { $$ = makeNode("FUNC_DEC_API",NULL,concateList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6)); }
-	| TYPE id ( FUNC_ARGLIST , FUNC_DEC_ARGLIST_OPT ) ; { $$ = makeNode("FUNC_DEC_API",NULL,concateList(concateList(concateList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6),$7),$8)); }
+FUNC_DEC_API : TYPE id '(' ')' ';' { $$ = makeNode("FUNC_DEC_API",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
+	| TYPE id '(' FUNC_ARGLIST ')' ';'	{ $$ = makeNode("FUNC_DEC_API",NULL,concateList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6)); }
+	| TYPE id '(' FUNC_DEC_ARGLIST_OPT ')' ';' { $$ = makeNode("FUNC_DEC_API",NULL,concateList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6)); }
+	| TYPE id '(' FUNC_ARGLIST ',' FUNC_DEC_ARGLIST_OPT ')' ';' { $$ = makeNode("FUNC_DEC_API",NULL,concateList(concateList(concateList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6),$7),$8)); }
 ;
 
-FUNC_DEC_ARGLIST_OPT : FUNC_DEC_ARGLIST_OPT, DCL_OPT { $$ = makeNode("FUNC_DEC_ARGLIST_OPT",NULL,concatList(concatList($1,$2),$3)); }
+FUNC_DEC_ARGLIST_OPT : FUNC_DEC_ARGLIST_OPT',' DCL_OPT { $$ = makeNode("FUNC_DEC_ARGLIST_OPT",NULL,concatList(concatList($1,$2),$3)); } /* DO WE WANNA KNOW? */
 	| DCL_OPT { $$ = makeNode("FUNC_DEC_ARGLIST_OPT",NULL,$1); }
 ;
 
-DCL_OPT : id : optional TYPE { $$ = makeNode("DCL_OPT",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
-	| id, DCL_OPT { $$ = makeNode("DCL_OPT",NULL,concatList(concatList($1,$2),$3)); }
+DCL_OPT : id ':' optional TYPE { $$ = makeNode("DCL_OPT",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
+	| id',' DCL_OPT { $$ = makeNode("DCL_OPT",NULL,concatList(concatList($1,$2),$3)); }
 ;
 
-FUNC_DEF_API : TYPE id ( ) { $$ = makeNode("FUNC_DEF_API",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
-	| TYPE id ( FUNC_ARGLIST ) { $$ = makeNode("FUNC_DEF_API",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
-	| TYPE id ( FUNC_DEF_ARGLIST_OPT ) { $$ = makeNode("FUNC_DEF_API",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
-	| TYPE id ( FUNC_ARGLIST , FUNC_DEF_ARGLIST_OPT ) { $$ = makeNode("FUNC_DEC_API",NULL,concateList(concateList(concateList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6),$7)); }
+FUNC_DEF_API : TYPE id '(' ')' { $$ = makeNode("FUNC_DEF_API",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
+	| TYPE id '(' FUNC_ARGLIST ')' { $$ = makeNode("FUNC_DEF_API",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
+	| TYPE id '(' FUNC_DEF_ARGLIST_OPT ')' { $$ = makeNode("FUNC_DEF_API",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
+	| TYPE id '(' FUNC_ARGLIST ',' FUNC_DEF_ARGLIST_OPT ')' { $$ = makeNode("FUNC_DEC_API",NULL,concateList(concateList(concateList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6),$7)); }
 ;
 
-FUNC_DEF_ARGLIST_OPT : FUNC_DEF_ARGLIST_OPT , DCL_OPT_VAL { $$ = makeNode("FUNC_DEF_ARGLIST_OPT",NULL,concatList(concatList($1,$2),$3)); }
+FUNC_DEF_ARGLIST_OPT : FUNC_DEF_ARGLIST_OPT ',' DCL_OPT_VAL { $$ = makeNode("FUNC_DEF_ARGLIST_OPT",NULL,concatList(concatList($1,$2),$3)); }
 	| DCL_OPT_VAL { $$ = makeNode("FUNC_DEF_ARGLIST_OPT",NULL,$1); }
 ;
 
-DCL_OPT_VAL : id assign NUM : optional TYPE { $$ = makeNode("DCL_OPT_VAL",NULL,concateList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6)); }
-	| id assign NUM , DCL_OPT_VAL { $$ = makeNode("DCL_OPT_VAL",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
+DCL_OPT_VAL : id assign NUM ':' optional TYPE { $$ = makeNode("DCL_OPT_VAL",NULL,concateList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6)); }
+	| id assign NUM ',' DCL_OPT_VAL { $$ = makeNode("DCL_OPT_VAL",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
 ;
 
-FUNC_ARGLIST : FUNC_ARGLIST , DCL { $$ = makeNode("FUNC_ARGLIST",NULL,concatList(concatList($1,$2),$3)); }
+FUNC_ARGLIST : FUNC_ARGLIST ',' DCL { $$ = makeNode("FUNC_ARGLIST",NULL,concatList(concatList($1,$2),$3)); }
 	| DCL { $$ = makeNode("FUNC_ARGLIST",NULL,$1); }
 ;
 
-BLK : { STLIST } { $$ = makeNode("BLK",NULL,concatList(concatList($1,$2),$3)); }
+BLK : '{' STLIST '}' { $$ = makeNode("BLK",NULL,concatList(concatList($1,$2),$3)); }
 ;
 
-DCL : id : TYPE { $$ = makeNode("DCL",NULL,concatList(concatList($1,$2),$3)); }
-	| id , DCL { $$ = makeNode("DCL",NULL,concatList(concatList($1,$2),$3)); }
+DCL : id ':' TYPE { $$ = makeNode("DCL",NULL,concatList(concatList($1,$2),$3)); }
+	| id ',' DCL { $$ = makeNode("DCL",NULL,concatList(concatList($1,$2),$3)); }
 ;
 
 TYPE : int { $$ = makeNode("TYPE",NULL,$1); }
@@ -76,9 +81,9 @@ STLIST : STLIST STMT { $$ = makeNode("STLIST",NULL,concatList($1,$2)); }
 	| /* epsilon */ { $$ = makeNode("STLIST",NULL,makeNode("EPSILON",NULL,NULL)); }
 ;
 
-STMT : DCL ; { $$ = makeNode("STMT",NULL,concatList($1,$2)); }
+STMT : DCL ';' { $$ = makeNode("STMT",NULL,concatList($1,$2)); }
 	| ASSN { $$ = makeNode("STMT",NULL,$1); }
-	| EXP ; { $$ = makeNode("STMT",NULL,concatList($1,$2)); }
+	| EXP ';' { $$ = makeNode("STMT",NULL,concatList($1,$2)); }
 	| CNTRL { $$ = makeNode("STMT",NULL,$1); }
 	| READ { $$ = makeNode("STMT",NULL,$1); }
 	| WRITE { $$ = makeNode("STMT",NULL,$1); }
@@ -86,57 +91,57 @@ STMT : DCL ; { $$ = makeNode("STMT",NULL,concatList($1,$2)); }
 	| BLK { $$ = makeNode("STMT",NULL,$1); }
 ;
 
-RETURN : return EXP ;
-	| return;
+RETURN : return EXP ';' { $$ = makeNode("RETURN",NULL,concatList(concatList($1,$2),$3)); }
+	| return';' { $$ = makeNode("RETURN",NULL,concatList($1,$2)); }
 ;
 
-WRITE : write ( EXP ) ;
-	| write ( str ) ;
+WRITE : write '(' EXP ')' ';' { $$ = makeNode("WRITE",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
+	| write '(' str ')' ';' { $$ = makeNode("WRITE",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
 ;
 
-READ : read ( LVAL ) ;
+READ : read '(' LVAL ')' ';' { $$ = makeNode("READ",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
 ;
 
-ASSN : LVAL assign EXP ;
+ASSN : LVAL assign EXP ';' { $$ = makeNode("ASSN",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
 ;
 
-LVAL : id
+LVAL : id { $$ = makeNode("LVAL",NULL,$1); }
 ;
 
-CNTRL : if BEXP then STMT else STMT
-	| if BEXP then STMT
-	| while BEXP do STMT
+CNTRL : if BEXP then STMT else STMT { $$ = makeNode("CNTRL",NULL,concateList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6)); }
+	| if BEXP then STMT { $$ = makeNode("CNTRL",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
+	| while BEXP do STMT { $$ = makeNode("CNTRL",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
 ;
 
-BEXP : BEXP or BEXP
-	| BEXP and BEXP
-	| not BEXP
-	| EXP relop EXP
-	| ( BEXP )
+BEXP : BEXP or BEXP { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3)); }
+	| BEXP and BEXP { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3)); }
+	| not BEXP { $$ = makeNode("BEXP",NULL,concatList($1,$2)); }
+	| EXP relop EXP { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3)); }
+	| '(' BEXP ')' { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3)); }
 ;
 
-EXP : EXP addop EXP
-	| EXP mulop EXP
-	| ( EXP ) 
-	| ( TYPE ) EXP 
-	| id
-	| NUM
-	| CALL
+EXP : EXP addop EXP { $$ = makeNode("EXP",NULL,concatList(concatList($1,$2),$3)); }
+	| EXP mulop EXP { $$ = makeNode("EXP",NULL,concatList(concatList($1,$2),$3)); }
+	| '(' EXP ')' { $$ = makeNode("EXP",NULL,concatList(concatList($1,$2),$3)); }
+	| '(' TYPE ')' EXP { $$ = makeNode("EXP",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
+	| id { $$ = makeNode("EXP",NULL,$1); }
+	| NUM { $$ = makeNode("EXP",NULL,$1); }
+	| CALL { $$ = makeNode("EXP",NULL,$1); }
 ;
 
-NUM : integernum
-	| realnum
+NUM : integernum { $$ = makeNode("NUM",NULL,$1); }
+	| realnum { $$ = makeNode("NUM",NULL,$1); }
 ;
 
-CALL : id ( CALL_ARGS )
+CALL : id '(' CALL_ARGS ')' { $$ = makeNode("CALL",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
 ;
 
-CALL_ARGS : CALL_ARGS
-	| /* epsilon */
+CALL_ARGS : CALL_ARGS { $$ = makeNode("CALL_ARGS",NULL,$1); }
+	| /* epsilon */ { $$ = makeNode("CALL_ARGS",NULL,makeNode("EPSILON",NULL,NULL)); }
 ;
 
-CALL_ARGSLIST : CALL_ARGLIST , EXP
-	| EXP
+CALL_ARGSLIST : CALL_ARGSLIST ',' EXP { $$ = makeNode("CALL_ARGSLIST",NULL,concatList(concatList($1,$2),$3)); }
+	| EXP { $$ = makeNode("CALL_ARGSLIST",NULL,$1); }
 ;
 
 %%
@@ -144,9 +149,7 @@ CALL_ARGSLIST : CALL_ARGLIST , EXP
 /* Bison Epilogue */
 
 void yyerror(const char*){
-	cout << "syntax error" << endl;
+	cout << "Syntax error: '" << yytext << "' in line number " << ylineno << endl;
+	exit(2);
 }
 
-int main(){
-	return yyparse();
-}

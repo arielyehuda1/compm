@@ -129,6 +129,6 @@ int|float|void|write|read|optional|while|do|if|then|else|return	{
 
 void showError()
 {
-	printf("\nLexical error: '%s' in line number %d\n", yytext, yylineno);
-	exit(7);
+	cout << "Lexical error: '" << yytext <<"' in line number " << ylineno << endl;
+	exit(1);
 }
