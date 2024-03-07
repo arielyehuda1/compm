@@ -17,6 +17,8 @@ typedef struct node {
     struct node *child;
 } ParserNode;
 
+#define YYSTYPE ParserNode* // changed yylval type to ParserNode*
+
 ParserNode *makeNode(const char* type,const char* value, ParserNode *child);
 
 ParserNode *concatList(ParserNode *listHead,ParserNode *newItem);

@@ -3,6 +3,7 @@
 #include <string.h>
 void showError();
 #include "part2_helpers.h"
+#include "part2.tab.hpp"
 %}
 
 %option yylineno noyywrap
@@ -122,13 +123,13 @@ int|float|void|write|read|optional|while|do|if|then|else|return	{
 }
 
 [\n\r]							;
-{whitespace}|					;			
+{whitespace}					;			
 {comment}						;			
 .								showError();                           
 %%
 
 void showError()
 {
-	cout << "Lexical error: '" << yytext <<"' in line number " << ylineno << endl;
+	printf("Lexical error: '%s' in line number %d\n", yytext, yylineno);
 	exit(1);
 }
