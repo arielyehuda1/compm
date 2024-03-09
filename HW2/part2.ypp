@@ -20,11 +20,12 @@
 %left RELOP
 %left ADDOP
 %left MULOP
-%right NOT
+%right NOT '(' ')'  // solving EXP rules conflicts
 
-%precedence THEN /* Consider alternative (call 911) */
-%precedence ELSE /* Consider alternative (call 911) */
-%precedence '(' ')' /* Consider alternative (call 911) */
+// solving CNTRL rules conflict
+%precedence THEN 
+%precedence ELSE 
+
 
 /* Bison Grammar rules */
 %%

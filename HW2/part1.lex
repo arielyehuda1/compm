@@ -25,7 +25,7 @@ comment		(#[^\n\r]*)
 int|float|void|write|read|optional|while|do|if|then|else|return	{
 	// In case of reserved word
 	yylval = makeNode(yytext,NULL,NULL);
-	// switch case for all possiblities of yytext
+	// all possiblities of yytext
 	if(!strcmp(yytext,"int"))
 		return INT;
 	else if(!strcmp(yytext,"float"))
@@ -71,7 +71,7 @@ int|float|void|write|read|optional|while|do|if|then|else|return	{
 
 
 {str}	   {
-	// may be problematic
+	// remove quotation marks from string
 	yytext[strlen(yytext)-1] = 0;
 	yylval = makeNode("str",yytext+1,NULL);
 	return	STR;
