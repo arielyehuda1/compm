@@ -6,23 +6,24 @@
 
 	int yylex();
 	void yyerror(const char*);
-	ParserNode *parseTree;
+	ParserNode *parseTree; //root node
 	extern int yylineno;
     extern const char* yytext;
 %}
 
 /* Bison Declarations */
-
+//no special precedence/associativity
 %token INT FLOAT VOID WRITE READ OPTIONAL WHILE DO IF RETURN ID INTEGERNUM REALNUM STR '{' '}' '[' ']' ',' ';' ':'
+//precedence and associativity as in C
 %right ASSIGN
 %left OR
 %left AND
 %left RELOP
 %left ADDOP
 %left MULOP
-%right NOT '(' ')'  // solving EXP rules conflicts
+%right NOT '(' ')'  // solving casting-mulop/addop conflicts
 
-// solving CNTRL rules conflict
+// solving else-then conflict
 %precedence THEN 
 %precedence ELSE 
 
