@@ -119,10 +119,10 @@ CNTRL : IF BEXP THEN STMT ELSE STMT { $$ = makeNode("CNTRL",NULL,concatList(conc
 	| WHILE BEXP DO STMT { $$ = makeNode("CNTRL",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
 ;
 
-BEXP : BEXP OR BEXP { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3)); }
+BEXP : BEXP OR BEXP { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3)); } //
 	| BEXP AND BEXP { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3)); }
 	| NOT BEXP { $$ = makeNode("BEXP",NULL,concatList($1,$2)); }
-	| EXP RELOP EXP { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3)); }
+	| EXP RELOP EXP { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3)); }// {$$.truelist = makelist(nextquad()); emit("'if'..")} How do you add id1.place
 	| '(' BEXP ')' { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3)); }
 ;
 

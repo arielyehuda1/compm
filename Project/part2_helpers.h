@@ -18,15 +18,22 @@ typedef struct node {
 } ParserNode;
 
 
-typedef struct boolean : node {
+struct boolean : node {
+    vector<int> truelist;
+    vector<int> falselist;
+};
 
+struct statement : node {
+    vector<int> nextlist;
+};
+
+struct expression : node {
+    auto place; // Maybe it should be std::string? But then how we calculate?
 };
 
 class Vec_buf {
-
-
 private:
-    vector<string> buffer;
+    vector<std::string> buffer;
 public:
     int nextquad();
     void emit(std::string command);
