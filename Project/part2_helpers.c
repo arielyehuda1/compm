@@ -95,8 +95,8 @@ void dumpParseTree(void)
 /**************************************************************************/
 /*                             MAKE a code list                           */
 /**************************************************************************/
-vector<int> makelist(int item) {
-    vector<int> new_list;
+std::vector<int> makelist(int item) {
+    std::vector<int> new_list;
     new_list.push_back(item);
     return new_list;
 }
@@ -104,7 +104,7 @@ vector<int> makelist(int item) {
 /**************************************************************************/
 /*                             Merge code lists                           */
 /**************************************************************************/
-void merge(vector<int> list1, vector<int> list2) {
+void merge(std::vector<int> list1, std::vector<int> list2) {
     for (auto it = list2.begin(); it != list2.end(); it++) {
         list1.push_back(*it);
     }
@@ -128,7 +128,7 @@ int Vec_buf::nextquad() {
 /**************************************************************************/
 /*                     Fill blank target address for jumps                */
 /**************************************************************************/
-void Vec_buf::backpatch(vector<int> commitment_list, int address) {
+void Vec_buf::backpatch(std::vector<int> commitment_list, int address) {
     for (auto it = commitment_list.begin(); it != commitment_list.end(); it++) {
         if ((*it) < buffer.size()) {
             buffer[*it] += " "+std::string(address);

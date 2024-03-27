@@ -20,12 +20,12 @@ typedef struct node {
 
 
 struct boolean : node {
-    vector<int> truelist;
-    vector<int> falselist;
+    std::vector<int> truelist;
+    std::vector<int> falselist;
 };
 
 struct statement : node {
-    vector<int> nextlist;
+    std::vector<int> nextlist;
 };
 
 struct expression : node {
@@ -40,8 +40,8 @@ private:
 public:
     int nextquad();
     void emit(std::string command);
-    void backpatch(vector<int> commitment_list, int address);
-    std::string newtemp();
+    void backpatch(std::vector<int> commitment_list, int address);
+    std::string newtemp(); //Need to be a function that returns either new memory place or names for id's.
 };
 
 
