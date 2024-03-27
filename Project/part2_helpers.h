@@ -4,7 +4,8 @@
 #ifndef COMMON_H
 #define COMMON_H
 #include <stdlib.h>
-#include <string.h>
+#include<vector>
+#include<string>
 
 #ifdef __cplusplus
 extern "C" {
@@ -28,16 +29,19 @@ struct statement : node {
 };
 
 struct expression : node {
-    auto place; // Maybe it should be std::string? But then how we calculate?
+    std::string place; // Maybe it should be std::string? But then how we calculate? Maybe auto?
 };
+
+//Maybe structs and classes for booleans and arithmetic operations?
 
 class Vec_buf {
 private:
-    vector<std::string> buffer;
+    std::vector<std::string> buffer;
 public:
     int nextquad();
     void emit(std::string command);
     void backpatch(vector<int> commitment_list, int address);
+    std::string newtemp();
 };
 
 

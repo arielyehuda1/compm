@@ -9,6 +9,7 @@
 	ParserNode *parseTree; //root node
 	extern int yylineno;
     extern const char* yytext;
+	Vec_buf code_buffer;
 %}
 
 /* Bison Declarations */
@@ -114,16 +115,26 @@ ASSN : LVAL ASSIGN EXP ';' { $$ = makeNode("ASSN",NULL,concatList(concatList(con
 LVAL : ID { $$ = makeNode("LVAL",NULL,$1); }
 ;
 
-CNTRL : IF BEXP THEN STMT ELSE STMT { $$ = makeNode("CNTRL",NULL,concatList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6)); }
-	| IF BEXP THEN STMT { $$ = makeNode("CNTRL",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
-	| WHILE BEXP DO STMT { $$ = makeNode("CNTRL",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
+CNTRL : IF BEXP THEN M STMT N ELSE M STMT { $$ = makeNode("CNTRL",NULL,concatList(concatList(concatList(concatList(concatList($1,$2),$3),$5),$7),$9));
+									backpatch($2.truelist,$4.quad); // What will be .quad? how do $# get the classes in structs to work?
+									backpatch($2.falselist,$8.quad);
+									$$.nextlist = merge($5.nextlist,merge($6.nextlist,$9.nextlist));}
+	| IF BEXP THEN M STMT { $$ = makeNode("CNTRL",NULL,concatList(concatList(concatList($1,$2),$3),$5));
+						backpatch($2.truelist,$4.quad);
+						$$.nextlist = merge($2.falselist,$5.nextlist);}
+	| WHILE M BEXP DO M STMT { $$ = makeNode("CNTRL",NULL,concatList(concatList(concatList($1,$3),$4),$6));
+							backpatch($6.nextlist,$2.quad);
+							backpatch($3.truelist,$5.quad);
+							$$.nextlist = $3.falselist; code_buffer.emit("goto "+std::to_string($2.quad));}
 ;
 
 BEXP : BEXP OR BEXP { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3)); } //
 	| BEXP AND BEXP { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3)); }
 	| NOT BEXP { $$ = makeNode("BEXP",NULL,concatList($1,$2)); }
-	| EXP RELOP EXP { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3)); }// {$$.truelist = makelist(nextquad()); emit("'if'..")} How do you add id1.place
-	| '(' BEXP ')' { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3)); }
+	| EXP RELOP EXP { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3));
+					$$.truelist = makelist(code_buffer.nextquad()); code_buffer.emit("if"+$1.place+relop.op+$3.place+"goto ");} //what is or will be relop.op? How do we calculate?
+	| '(' BEXP ')' { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3));
+					$$.truelist = $2.truelist; $$.falselist = $2.falselist;}
 ;
 
 EXP : EXP ADDOP EXP { $$ = makeNode("EXP",NULL,concatList(concatList($1,$2),$3)); }
@@ -149,7 +160,8 @@ CALL_ARGS : CALL_ARGLIST { $$ = makeNode("CALL_ARGS",NULL,$1); }
 CALL_ARGLIST : CALL_ARGLIST ',' EXP { $$ = makeNode("CALL_ARGLIST",NULL,concatList(concatList($1,$2),$3)); }
 	| EXP { $$ = makeNode("CALL_ARGLIST",NULL,$1); }
 ;
-
+N : /* epsilon */ { $$.nextlist = makelist(code_buffer.nextquad()); code_buffer.emit("goto ");}
+M : /* epsilon */ { $$.quad = code_buffer.nextquad(); }
 %%
 
 /* Bison Epilogue */
