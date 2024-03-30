@@ -117,30 +117,178 @@ return : RETURN EXP ';' { $$ = makeNode("RETURN",NULL,concatList(concatList($1,$
 	| RETURN';' { $$ = makeNode("RETURN",NULL,concatList($1,$2)); }
 ;
 
-write : WRITE '(' EXP ')' ';' { $$ = makeNode("WRITE",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
-	| WRITE '(' STR ')' ';' { $$ = makeNode("WRITE",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
+write : WRITE '(' EXP ')' ';' { //---------------------------------------------rule below finished-----------------------------------------
+		$$ = new Node();
+		/*here is the place for dynamic casting to parent but i see no use*/
+		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		string three_add_code;
+        if(exp->exp_type == int_){
+            three_add_code = string("PRNTI") + " " + exp->place;
+			code_buffer.emit(three_add_code);
+		}
+        else if(exp->exp_type == float_){
+            three_add_code = string("PRNTF") + " " + exp->place;
+			code_buffer.emit(three_add_code);
+		}
+		else{	//type == void_t)
+            semantic_err("rule 2: can't write to variable of type void");
+		}
+
+	}
+	| WRITE '(' STR ')' ';' { 
+		$$ = new Node();
+		/*here is the place for dynamic casting to parent but i see no use*/
+		Terminal* str1 = dynamic_cast<Terminal*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		//check special character within string
+		string str = str1->terminal_value;
+		for(int i = 0; i < str.length(); i++){
+			if(str[i] == '\\'){
+                i++;
+                if(str[i] == 'n'){
+                    code_buffer.emit("PRNTC 10");	//ASCII value of \n
+				}
+				else if(str[i] == 't'){
+                    code_buffer.emit("PRNTC 9");	//ASCII value of \t
+				}
+				else if(str[i] == '"'){
+                    code_buffer.emit("PRNTC 34");	//ASCII value of "
+				}
+                else{	// backslash with no meaning, error
+                        operational_err("illegal use of \\");
+                }
+            }
+			else {	//no special character
+                string three_add_code = string("PRNTC") + " " + to_string(int(str[i]));		//why int???
+				code_buffer.emit(three_add_code);
+            }
+		}
+	}
 ;
 
-read : READ '(' LVAL ')' ';' { $$ = makeNode("READ",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
+read : READ '(' LVAL ')' ';' { 	//---------------------------------------------rule below finished-----------------------------------------
+		$$ = new Node();
+		Node* read0 = dynamic_cast<Node*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* lval1 = dynamic_cast<ExpSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		string three_add_code;
+		string letter_type = "I";
+		if(lval1->exp_type == float_){
+			letter_type = "F";
+		}
+		else if(lval1->exp_type == void_t){		//shouldn't get here
+			semantic_err("rule 2: can't read to variable of type void");
+		}
+		
+		string temp_reg = var_table.front().next_temp_reg(lval1->exp_type);
+		three_add_code = string("READ")+type + " " + temp_reg;
+		code_buffer.emit(three_add_code);
+		three_add_code = string("STOR")+type + " " + temp_reg + " " + lval->place + " " + "0";	//again why store and not copy?
+		code_buffer.emit(three_add_code);
+
+	}
 ;
 
-ASSN : LVAL ASSIGN EXP ';' { $$ = makeNode("ASSN",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
+ASSN : LVAL ASSIGN EXP ';' {	//---------------------------------------------rule below finished-----------------------------------------
+		$$ = new StmtSymbol();
+		StmtSymbol* assn0 = dynamic_cast<StmtSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* lval1 = dynamic_cast<ExpSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		if(lval1->exp_type != exp1->exp_type){	
+			semantic_err("rule 1: assignment between different types is not allowed");
+		}
+
+		string letter_type = "I";
+		if(lval1->exp_type == float_){
+			letter_type = "F";
+		}
+		else if(lval1->exp_type == void_t){		//shouldn't get here
+			semantic_err("rule 2: can't assign to variable of type void");
+		}
+		string three_add_code = string("STOR")+letter_type + " " + exp1->place + " " + lval1->place + " " + "0";	//why store and not copy?
+		code_buffer.emit(three_add_code);
+
+	}
 ;
 
-LVAL : ID { $$ = makeNode("LVAL",NULL,$1); }
+LVAL : ID {     		//---------------------------------------------rule below finished-------------------------------------------------
+		$$ = new ExpSymbol();
+		ExpSymbol* lval0 = dynamic_cast<ExpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Terminal* id1 = dynamic_cast<Terminal*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		//checking if variable ID is declared
+		Var_Table_Entry var_entry;
+		if(!var_table.is_var_exist(var_entry, id1->terminal_value)){
+			string err = "variable '" + id1->terminal_value + "' is not declared";
+			semantic_err(err);
+		}
+
+		string three_add_code;
+		string temp_reg = var_table.front().next_temp_reg(int_);
+		three_add_code = string("ADD2I") + " " + temp_reg + " " + DP + " " + to_string(var_entry.offset);
+		code_buffer.emit(three_add_code);
+
+        lval->place = temp_reg;		//update parent symbol place
+		lval->exp_type = var_entry.type;	//update parent symbol type
+
+		if(var_entry.type == float_){
+                    string float_reg = varTable.front().next_temp_reg(float_);
+                    three_add_code = string("CITOF") + " " + float_reg + " " + temp_reg;
+					code_buffer.emit(three_add_code);
+                    lval->place = float_reg;
+        }
+	}
 ;
 
-CNTRL : IF BEXP THEN M STMT N ELSE M STMT { $$ = makeNode("CNTRL",NULL,concatList(concatList(concatList(concatList(concatList($1,$2),$3),$5),$7),$9));
-									backpatch($2.truelist,$4.quad); // What will be .quad? how do $# get the classes in structs to work?
-									backpatch($2.falselist,$8.quad);
-									$$.nextlist = merge($5.nextlist,merge($6.nextlist,$9.nextlist));}
-	| IF BEXP THEN M STMT { $$ = makeNode("CNTRL",NULL,concatList(concatList(concatList($1,$2),$3),$5));
-						backpatch($2.truelist,$4.quad);
-						$$.nextlist = merge($2.falselist,$5.nextlist);}
-	| WHILE M BEXP DO M STMT { $$ = makeNode("CNTRL",NULL,concatList(concatList(concatList($1,$3),$4),$6));
-							backpatch($6.nextlist,$2.quad);
-							backpatch($3.truelist,$5.quad);
-							$$.nextlist = $3.falselist; code_buffer.emit("goto "+std::to_string($2.quad));}
+CNTRL : IF BEXP THEN M STMT ELSE N M STMT {     //--------------------------------------rule below finished--------------------------------
+		$$ = new StmtSymbol();
+		StmtSymbol* cntrl0 = dynamic_cast<StmtSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Marker_M_Symbol* M1 = dynamic_cast<Marker_M_Symbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		StmtSymbol* stmt1 = dynamic_cast<StmtSymbol*>($5);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Marker_N_Symbol* N1 = dynamic_cast<Marker_N_Symbol*>($7);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Marker_M_Symbol* M2 = dynamic_cast<Marker_M_Symbol*>($8);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		StmtSymbol* stmt2 = dynamic_cast<StmtSymbol*>($9);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		code_buffer.backpatch(bexp1->truelist, M1->quad);
+        code_buffer.backpatch(bexp1->falselist, M2->quad);
+        cntrl0->nextlist.merge(N1->nextlist);
+        cntrl0->nextlist.merge(stmt1->nextlist);
+        cntrl0->nextlist.merge(stmt2->nextlist);
+        cntrl0->breaklist.merge(stmt1->breaklist);
+        cntrl0->breaklist.merge(stmt2->breaklist);
+
+	}
+	| IF BEXP THEN M STMT { 
+		$$ = new StmtSymbol();
+		StmtSymbol* cntrl0 = dynamic_cast<StmtSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Marker_M_Symbol* M1 = dynamic_cast<Marker_M_Symbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		StmtSymbol* stmt1 = dynamic_cast<StmtSymbol*>($5);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		code_buffer.backpatch(bexp1->truelist, M1->quad);
+		cntrl0->nextlist.merge(bexp1->falselist);
+		cntrl0->nextlist.merge(stmt1->nextlist);
+		cntrl0->breaklist.merge(stmt1->breaklist);
+
+	}
+	| WHILE M BEXP DO M STMT { 
+		$$ = new StmtSymbol();
+		StmtSymbol* cntrl0 = dynamic_cast<StmtSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Marker_M_Symbol* M1 = dynamic_cast<Marker_M_Symbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Marker_M_Symbol* M2 = dynamic_cast<Marker_M_Symbol*>($5);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		StmtSymbol* stmt1 = dynamic_cast<StmtSymbol*>($6);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		code_buffer.backpatch(bexp1->truelist, M2->quad);
+		code_buffer.backpatch(stmt1->nextlist, M1->quad);
+		cntrl0->nextlist.merge(bexp1->falselist);
+		cntrl0->nextlist.merge(stmt1->breaklist);
+		string three_add_code = string("UJUMP") + " " + to_string(M1->quad);
+		code_buffer.emit(three_add_code);
+	}
 ;
 
 BEXP : BEXP OR M BEXP {    		//---------------------------------------------rule below finished-----------------------------------------
@@ -184,10 +332,10 @@ BEXP : BEXP OR M BEXP {    		//---------------------------------------------rule
 		ExpSymbol* exp3 = dynamic_cast<ExpSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
 
 		if(exp1->exp_type != exp3->exp_type){	
-			semantic_err("RELOP operation between different types is not allowed")
+			semantic_err("RELOP operation between different types is not allowed");
 		}
 		if(exp1->exp_type == void_t || exp3->exp_type == void_t){	
-			semantic_err("RELOP operation is not allowed on type void")
+			semantic_err("RELOP operation is not allowed on type void");
 		}
 
 		string three_add_code;
@@ -327,10 +475,10 @@ EXP : EXP ADDOP EXP {    		//---------------------------------------------rule b
 		ExpSymbol* exp3 = dynamic_cast<ExpSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
 
 		if(exp1->exp_type != exp3->exp_type){	
-			semantic_err("ADDOP operation between different types is not allowed")
+			semantic_err("ADDOP operation between different types is not allowed");
 		}
 		if(exp1->exp_type == void_t || exp3->exp_type == void_t){	
-			semantic_err("ADDOP operation is not allowed on type void")
+			semantic_err("ADDOP operation is not allowed on type void");
 		}
 
 		string three_add_code;
@@ -364,10 +512,10 @@ EXP : EXP ADDOP EXP {    		//---------------------------------------------rule b
 		ExpSymbol* exp3 = dynamic_cast<ExpSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
 
 		if(exp1->exp_type != exp3->exp_type){	
-			semantic_err("MULOP operation between different types is not allowed")
+			semantic_err("MULOP operation between different types is not allowed");
 		}
 		if(exp1->exp_type == void_t || exp3->exp_type == void_t){	
-			semantic_err("MULOP operation is not allowed on type void")
+			semantic_err("MULOP operation is not allowed on type void");
 		}
 
 		string three_add_code;
