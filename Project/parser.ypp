@@ -1,15 +1,21 @@
 /* Bison Prologue*/
 %{
-	#include <stdio.h>
+	#include "part3_helpers.h"
+	
 	using namespace std;
-	#include "part2_helpers.h"
 
 	int yylex();
-	void yyerror(const char*);
-	ParserNode *parseTree; //root node
 	extern int yylineno;
     extern const char* yytext;
+	
+	Node *root_node;		//root node
 	Vec_buf code_buffer;
+	variable_table var_table;
+	Function_Table func_table;
+	
+	void yyerror(const char*);
+	void semantic_err(string err);
+	void operational_err(string err);
 %}
 
 /* Bison Declarations */
@@ -32,12 +38,21 @@
 /* Bison Grammar rules */
 %%
 
-PROGRAM : FDEFS		{ parseTree = makeNode("PROGRAM",NULL,$1); }
+PROGRAM :	FDEFS	{ 		//---------------------------------------------rule below finished---------------------------------------------
+				root_node = new Node();		//maybe need to change to lower class (like symbol node)
+				code_buffer.emit("HALT");	//end of program
+			}
 ;
 
-FDEFS : FDEFS FUNC_DEF_API BLK { $$ = makeNode("FDEFS",NULL,concatList(concatList($1,$2),$3)); }
-	| FDEFS FUNC_DEC_API { $$ = makeNode("FDEFS",NULL,concatList($1,$2)); }
-	| /* epsilon */ { $$ = makeNode("FDEFS",NULL,makeNode("EPSILON",NULL,NULL)); }
+FDEFS :		FDEFS FUNC_DEF_API BLK { 
+				
+			}
+			| FDEFS FUNC_DEC_API { 
+				
+			}
+			| /* epsilon */ { 
+				$$ = new Node();
+			}
 ;
 
 FUNC_DEC_API : TYPE ID '(' ')' ';' { $$ = makeNode("FUNC_DEC_API",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
@@ -128,40 +143,518 @@ CNTRL : IF BEXP THEN M STMT N ELSE M STMT { $$ = makeNode("CNTRL",NULL,concatLis
 							$$.nextlist = $3.falselist; code_buffer.emit("goto "+std::to_string($2.quad));}
 ;
 
-BEXP : BEXP OR BEXP { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3)); } //
-	| BEXP AND BEXP { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3)); }
-	| NOT BEXP { $$ = makeNode("BEXP",NULL,concatList($1,$2)); }
-	| EXP RELOP EXP { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3));
-					$$.truelist = makelist(code_buffer.nextquad()); code_buffer.emit("if"+$1.place+relop.op+$3.place+"goto ");} //what is or will be relop.op? How do we calculate?
-	| '(' BEXP ')' { $$ = makeNode("BEXP",NULL,concatList(concatList($1,$2),$3));
-					$$.truelist = $2.truelist; $$.falselist = $2.falselist;}
+BEXP : BEXP OR M BEXP {    		//---------------------------------------------rule below finished-----------------------------------------
+		$$ = new BexpSymbol();
+		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,... 
+		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,... 
+		Marker_M_Symbol* M = dynamic_cast<Marker_M_Symbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,... 
+		BexpSymbol* bexp2 = dynamic_cast<BexpSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,... 
+
+		code_buffer.backpatch(bexp1->falselist, M->quad);
+        bexp0->truelist.merge(bexp1->truelist);
+        bexp0->truelist.merge(bexp2->truelist);
+        bexp0->falselist.merge(bexp2->falselist);
+	} 
+	| BEXP AND M BEXP { 
+		$$ = new BexpSymbol();
+		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,... 
+		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,... 
+		Marker_M_Symbol* M = dynamic_cast<Marker_M_Symbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,... 
+		BexpSymbol* bexp2 = dynamic_cast<BexpSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,... 
+
+		code_buffer.backpatch(bexp1->truelist, M->quad);
+		bexp0->truelist.merge(bexp2->truelist);	
+		bexp0->falselist.merge(bexp1->falselist);
+		bexp0->falselist.merge(bexp2->falselist);
+	}
+	| NOT BEXP { 
+		$$ = new BexpSymbol();
+		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,... 
+		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,... 
+
+		//swap true and false lists in assignment to parent symbol
+		bexp->truelist.merge(bexp1->falselist);
+		bexp->falselist.merge(bexp1->truelist);
+	}
+	| EXP RELOP EXP { 
+		$$ = new BexpSymbol();
+		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...  
+		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Terminal* relop2 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp3 = dynamic_cast<ExpSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		if(exp1->exp_type != exp3->exp_type){	
+			semantic_err("RELOP operation between different types is not allowed")
+		}
+		if(exp1->exp_type == void_t || exp3->exp_type == void_t){	
+			semantic_err("RELOP operation is not allowed on type void")
+		}
+
+		string three_add_code;
+		string result_reg = var_table.front().next_temp_reg(int_);	//assume it's int, otherwise need casting
+		string letter_type = "I";
+		if(exp1->exp_type == float_){
+			letter_type = "F";
+		}
+
+		switch(relop2->terminal_value){
+		case "==":
+			if(exp1->exp_type == float_){
+				string float_reg = var_table.front().next_temp_reg(float_);
+				three_add_code = string("SEQUF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
+				code_buffer.emit(three_add_code);
+				//now casting the result to int
+				three_add_code = string("CFTOI") + " " + result_reg + " " + float_reg;
+				code_buffer.emit(three_add_code);
+			}
+			else{	//type int, no casting
+				three_add_code = string("SEQUI") + " " + result_reg + " " + exp1->place + " " + exp2->place;
+				code_buffer.emit(three_add_code);
+			}
+			bexp->truelist.push_back(code_buffer.nextQuad());
+            three_add_code = string("BNEQZ") + " " + result_reg + " " + "-1";	//expressions equal --> res=1 , why the emit is here???????????
+			code_buffer.emit(three_add_code); 
+            break;
+		case "<>":
+			if(exp1->exp_type == float_){
+				string float_reg = var_table.front().next_temp_reg(float_);
+				three_add_code = string("SNEQF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
+				code_buffer.emit(three_add_code);
+				//now casting the result to int
+				three_add_code = string("CFTOI") + " " + result_reg + " " + float_reg;
+				code_buffer.emit(three_add_code);
+			}
+			else{	//type int, no casting
+				three_add_code = string("SNEQI") + " " + result_reg + " " + exp1->place + " " + exp2->place;
+				code_buffer.emit(three_add_code);
+			}
+			bexp->truelist.push_back(code_buffer.nextQuad());
+            three_add_code = string("BNEQZ") + " " + result_reg + " " + "-1";	// why the emit is here???????????
+			code_buffer.emit(three_add_code); 
+            break;
+		case "<":
+			if(exp1->exp_type == float_){
+				string float_reg = var_table.front().next_temp_reg(float_);
+				three_add_code = string("SLETF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
+				code_buffer.emit(three_add_code);
+				//now casting the result to int
+				three_add_code = string("CFTOI") + " " + result_reg + " " + float_reg;
+				code_buffer.emit(three_add_code);
+			}
+			else{	//type int, no casting
+				three_add_code = string("SLETI") + " " + result_reg + " " + exp1->place + " " + exp2->place;
+				code_buffer.emit(three_add_code);
+			}
+			bexp->truelist.push_back(code_buffer.nextQuad());
+            three_add_code = string("BNEQZ") + " " + result_reg + " " + "-1";	// why the emit is here???????????
+			code_buffer.emit(three_add_code); 
+            break;
+		case "<=":
+			if(exp1->exp_type == float_){
+				string float_reg = var_table.front().next_temp_reg(float_);
+				three_add_code = string("SGRTF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
+				code_buffer.emit(three_add_code);
+				//now casting the result to int
+				three_add_code = string("CFTOI") + " " + result_reg + " " + float_reg;
+				code_buffer.emit(three_add_code);
+			}
+			else{	//type int, no casting
+				three_add_code = string("SGRTI") + " " + result_reg + " " + exp1->place + " " + exp2->place;
+				code_buffer.emit(three_add_code);
+			}
+			bexp->truelist.push_back(code_buffer.nextQuad());
+            three_add_code = string("BREQZ") + " " + result_reg + " " + "-1";	//exp1 <= exp3 --> res=0 , why the emit is here???????????
+			code_buffer.emit(three_add_code); 
+            break;
+		case ">":
+			if(exp1->exp_type == float_){
+				string float_reg = var_table.front().next_temp_reg(float_);
+				three_add_code = string("SGRTF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
+				code_buffer.emit(three_add_code);
+				//now casting the result to int
+				three_add_code = string("CFTOI") + " " + result_reg + " " + float_reg;
+				code_buffer.emit(three_add_code);
+			}
+			else{	//type int, no casting
+				three_add_code = string("SGRTI") + " " + result_reg + " " + exp1->place + " " + exp2->place;
+				code_buffer.emit(three_add_code);
+			}
+			bexp->truelist.push_back(code_buffer.nextQuad());
+            three_add_code = string("BNEQZ") + " " + result_reg + " " + "-1";	// why the emit is here???????????
+			code_buffer.emit(three_add_code); 
+            break;
+		case ">=":
+			if(exp1->exp_type == float_){
+				string float_reg = var_table.front().next_temp_reg(float_);
+				three_add_code = string("SLETF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
+				code_buffer.emit(three_add_code);
+				//now casting the result to int
+				three_add_code = string("CFTOI") + " " + result_reg + " " + float_reg;
+				code_buffer.emit(three_add_code);
+			}
+			else{	//type int, no casting
+				three_add_code = string("SLETI") + " " + result_reg + " " + exp1->place + " " + exp2->place;
+				code_buffer.emit(three_add_code);
+			}
+			bexp->truelist.push_back(code_buffer.nextQuad());
+            three_add_code = string("BREQZ") + " " + result_reg + " " + "-1";	//exp1 <= exp3 --> res=0 , why the emit is here???????????
+			code_buffer.emit(three_add_code); 
+            break;
+		default:
+			operational_err("the operator is not RELOP");
+			break;
+		}	//switch closing braces
+
+		bexp->falselist.push_back(code_buffer.nextQuad());	//update parent falselist
+		code_buffer.emit(string("UJUMP -1"));
+
+	} 
+	| '(' BEXP ')' { 
+		$$ = new BexpSymbol();
+		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...        
+        BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		bexp0->truelist = bexp1->truelist;        
+        bexp0->falselist = bexp1->falselist; 
+	}
 ;
 
-EXP : EXP ADDOP EXP { $$ = makeNode("EXP",NULL,concatList(concatList($1,$2),$3)); }
-	| EXP MULOP EXP { $$ = makeNode("EXP",NULL,concatList(concatList($1,$2),$3)); }
-	| '(' EXP ')' { $$ = makeNode("EXP",NULL,concatList(concatList($1,$2),$3)); }
-	| '(' TYPE ')' EXP { $$ = makeNode("EXP",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
-	| ID { $$ = makeNode("EXP",NULL,$1); }
-	| NUM { $$ = makeNode("EXP",NULL,$1); }
-	| CALL { $$ = makeNode("EXP",NULL,$1); }
+EXP : EXP ADDOP EXP {    		//---------------------------------------------rule below finished-----------------------------------------
+		$$ = new ExpSymbol();
+		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Terminal* addop2 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp3 = dynamic_cast<ExpSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		if(exp1->exp_type != exp3->exp_type){	
+			semantic_err("ADDOP operation between different types is not allowed")
+		}
+		if(exp1->exp_type == void_t || exp3->exp_type == void_t){	
+			semantic_err("ADDOP operation is not allowed on type void")
+		}
+
+		string three_add_code;
+		string result_reg = var_table.front().next_temp_reg(exp1->exp_type);
+		string letter_type = "I";
+		if(exp1->exp_type == float_){
+			letter_type = "F";
+		}
+
+		if(addop2->terminal_value == '+'){
+			three_add_code = string("ADD2") + letter_type + " " + result_reg + " " + exp1->place + " " + exp3->place;
+			code_buffer.emit(three_add_code);
+		}
+		else if(addop2->terminal_value == '-'){
+			three_add_code = string("SUBT") + letter_type + " " + result_reg + " " + exp1->place + " " + exp3->place;
+			code_buffer.emit(three_add_code);
+		}
+		else{	//operational error
+			operational_err("the operator is not ADDOP");
+		}
+
+		exp0->place = result_reg;		//update parent symbol place
+		exp0->exp_type = exp1->exp_type;	//update parent symbol type
+
+	}
+	| EXP MULOP EXP { 
+		$$ = new ExpSymbol();
+		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Terminal* mulop2 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp3 = dynamic_cast<ExpSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		if(exp1->exp_type != exp3->exp_type){	
+			semantic_err("MULOP operation between different types is not allowed")
+		}
+		if(exp1->exp_type == void_t || exp3->exp_type == void_t){	
+			semantic_err("MULOP operation is not allowed on type void")
+		}
+
+		string three_add_code;
+		string result_reg = var_table.front().next_temp_reg(exp1->exp_type);
+		string letter_type = "I";
+		if(exp1->exp_type == float_){
+			letter_type = "F";
+		}
+
+		if(mulop2->terminal_value == '*'){
+			three_add_code = string("MULT") + letter_type + " " + result_reg + " " + exp1->place + " " + exp3->place;
+			code_buffer.emit(three_add_code);
+		}
+		else if(mulop2->terminal_value == '/'){
+			three_add_code = string("DIVD") + letter_type + " " + result_reg + " " + exp1->place + " " + exp3->place;
+			code_buffer.emit(three_add_code);
+		}
+		else{	//operational error
+			operational_err("the operator is not MULOP");
+		}
+
+		exp0->place = result_reg;		//update parent symbol place
+		exp0->exp_type = exp1->exp_type;	//update parent symbol type
+
+	}
+	| '(' EXP ')' { 
+		$$ = new ExpSymbol();
+		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		exp0->place = exp1->place;		//update parent symbol place
+		exp0->exp_type = exp1->exp_type;	//update parent symbol type
+	}
+	| '(' TYPE ')' EXP { 
+		$$ = new ExpSymbol();
+		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		TypeSymbol* type1 = dynamic_cast<TypeSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp2 = dynamic_cast<ExpSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		string three_add_code;
+		if(type1->type_value == exp2->exp_type){	//sam type, no casting needed
+			exp0->place = exp2->place;		//update parent symbol place
+			exp0->exp_type = exp2->exp_type;	//update parent symbol type
+		}
+		else{
+			if(type1->type_value == void_t || exp2->exp_type == void_t){
+				semantic_err("casting from/to type void is not allowed");
+			}
+			else if(type1->type_value == int_){	//we can change the cond to exp2->exp_type == float_
+				exp0->place = var_table.front().next_temp_reg(int_);
+				three_add_code = string("CFTOI") + " " + exp0->place + " " + exp2->place;
+				code_buffer.emit(three_add_code);
+			}
+			else{	//type == float_
+				exp0->place = var_table.front().next_temp_reg(float_);
+				three_add_code = string("CITOF") + " " + exp0->place + " " + exp2->place;
+				code_buffer.emit(three_add_code);
+			}
+		}
+
+	}
+	| ID { 
+		$$ = new ExpSymbol();
+		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Terminal* id1 = dynamic_cast<Terminal*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		//checking if variable ID is declared
+		Var_Table_Entry var_entry;
+		if(!var_table.is_var_exist(var_entry, id1->terminal_value)){
+			string err = "variable '" + id1->terminal_value + "' is not declared";
+			semantic_err(err);
+		}
+
+		string three_add_code;
+		string temp_reg = var_table.front().next_temp_reg(var_entry.type);
+		if(var_entry.type = float_){
+			three_add_code = string("CITOF") + " " + DP_F + " " + DP;
+			code_buffer.emit(three_add_code);
+			three_add_code = string("LOADF") + " " + temp_reg + " " + DP_F + " " + to_string(var_entry.offset);
+			code_buffer.emit(three_add_code);
+		}
+		else if(var_entry.type = int_){
+			three_add_code = string("LOADI") + " " + temp_reg + " " + DP + " " + to_string(var_entry.offset);
+			code_buffer.emit(three_add_code);
+		}
+		else{	//type == void , shouldn't get here
+			semantic_err("rule 2: can't declare variable of type void");
+		}
+
+		exp0->place = temp_reg;		//update parent symbol place
+		exp0->exp_type = var_entry.type;	//update parent symbol type
+
+	}
+	| NUM { 
+		$$ = new ExpSymbol();
+		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* num1 = dynamic_cast<ExpSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		exp0->place = num1->place;		//update parent symbol place
+		exp0->exp_type = num1->exp_type;	//update parent symbol type
+	}
+	| CALL { 
+		$$ = new ExpSymbol();
+		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* call1 = dynamic_cast<ExpSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		exp0->place = call1->place;		//update parent symbol place
+		exp0->exp_type = call1->exp_type;	//update parent symbol type
+	}
 ;
 
-NUM : INTEGERNUM { $$ = makeNode("NUM",NULL,$1); }
-	| REALNUM { $$ = makeNode("NUM",NULL,$1); }
+NUM : INTEGERNUM {   		//---------------------------------------------rule below finished---------------------------------------------
+		$$ = new ExpSymbol();
+		ExpSymbol* num0 = dynamic_cast<ExpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Terminal* int1 = dynamic_cast<Terminal*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		num0->place = var_table.front().next_temp_reg(int_);	//update parent symbol place
+		num0->exp_type = int_;		//update parent symbol type
+		string three_add_code = string("COPYI") + " " + num0->place + " " + int1->terminal_value;
+		code_buffer.emit(three_add_code);
+	}
+	| REALNUM { 
+		$$ = new ExpSymbol();
+		ExpSymbol* num0 = dynamic_cast<ExpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Terminal* real1 = dynamic_cast<Terminal*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		num0->place = var_table.front().next_temp_reg(float_);	//update parent symbol place
+		num0->exp_type = float_;	//update parent symbol type
+		string three_add_code = string("COPYF") + " " + num0->place + " " + real1->terminal_value;
+		code_buffer.emit(three_add_code);
+	}
 ;
 
-CALL : ID '(' CALL_ARGS ')' { $$ = makeNode("CALL",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
+CALL : ID '(' CALL_ARGS ')' {  		//---------------------------------------------rule below finished-------------------------------------
+		$$ = new ExpSymbol();
+		ExpSymbol* call0 = dynamic_cast<ExpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Terminal* id1 = dynamic_cast<Terminal*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		CallArgsSymbol* call_args1 = dynamic_cast<CallArgsSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		Function_Table_Entry* func_entry = func_table.find_func_entry(id1->terminal_value);
+		if(func_entry == NULL){
+			string err = "function '" + id1->terminal_value + "' is not declared";
+			semantic_err(err);
+		}
+		if(call_args1->exp_args.size() != func_entry->func_args.size()){
+            string err = string("wrong number of arguments passed to function '") + id1->terminal_value +"'";
+			semantic_error(err);
+		}
+
+		string three_add_code;
+		var_table.store();	//for each var: Mem[SP++] = var
+        three_add_code = string("STORI") + " " + RA + " " + SP + " " + "0";	//Mem[SP] = RA
+		code_buffer.emit(three_add_code);
+		three_add_code = string("STORI") + " " + DP + " " + SP + " " + "4";	//Mem[SP+1*4] = DP
+        code_buffer.emit(three_add_code); 
+		three_add_code = string("STORI") + " " + FP + " " + SP + " " + "8";	//Mem[SP+2*4] = FP
+        code_buffer.emit(three_add_code); 
+
+		three_add_code = string("ADD2I") + " " + FP + " " + SP + " " + "8";	//updating frame pointer (need clearer explanation)
+		code_buffer.emit(three_add_code);
+
+		//Cast FP to FP_F - DON'T KNOW WHY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+        three_add_code = string("CITOF") + " " + FP_F + " " + FP;
+		code_buffer.emit(three_add_code);
+		//?????????????????????????????????????????????????????????????????????????????????????????
+
+		/***** pre-call - store arguments, update dp and sp *****/
+		
+		//store arguments in stack before call
+		int i = 1;	//
+        auto func_arg_it = func_entry->func_args.begin();
+        auto exp_arg_it = call_args1->exp_args.begin();
+
+		for(;func_arg_it != func_entry->func_args.end();i++, func_arg_it++, exp_arg_it++){
+            
+			if(exp_arg_it->exp_type != func_arg_it->type){
+				string err = string("rule 3: wrong type of argument passed to function '") + id1->terminal_value +"'";
+				semantic_error(err);
+			}
+
+            if(func_arg_it->type == int_){
+                three_add_code = string("STORI") + " " + exp_arg_it->place + " " + FP + " " + to_string(i * 4);
+				code_buffer.emit(three_add_code);
+            } else if (func_arg_it->type == float_){
+                three_add_code = string("STORF") + " " + exp_arg_it->place + " " + FP_F + " " + to_string(i * 4);
+				code_buffer.emit(three_add_code);
+            } else {
+                semantic_err("rule 2: can't pass parameter of type void to function ");
+            }
+		}
+
+		//set DP on the first arg
+        three_add_code = string("ADD2I") + + " " DP + " " + FP + " " + to_string(4);
+		code_buffer.emit(three_add_code);
+        //set SP above arguments
+		three_add_code = string("ADD2I") + " " + SP + " " + FP + " " + to_string((func_entry->func_args.size() + 1) * 4);
+        code_buffer.emit(three_add_code);
+        
+		//jump to definition line of function
+        three_add_code = string("JLINK") + " " + func_entry->get_func_def_place(code_buffer.nextQuad());
+        code_buffer.emit(three_add_code);
+
+		/***** post-call - restore SP, FP *****/
+        
+		three_add_code = string("COPYI") + SP + FP; //SP = FP
+        code_buffer.emit(three_add_code);
+		three_add_code = "LOADI" + " " + FP + " " + FP + " " + "0";	//FP = Mem[FP+0]	
+        code_buffer.emit(three_add_code);
+		three_add_code = string("SUBTI") + " " + SP + " " + SP + " " + "8";		//SP-=2*4
+        code_buffer.emit(three_add_code); 
+		three_add_code = string("LOADI") + " " + DP + " " + SP + " " + "4";		//DP = Mem[SP+1*4]
+        code_buffer.emit(three_add_code); 
+		three_add_code = string("LOADI") + " " + RA + " " + SP + " " + "0";		//RA = Mem[SP]
+        code_buffer.emit(); 
+        var_table.load();  //for each var: var = Mem[--SP]
+
+		//update parent symbol
+
+		call0->exp_type = func_entry->ret_type;	//updates return type
+        //store the return value
+        if(func_entry->ret_type == int_){
+                call0->place = var_table.front().next_temp_reg(int_);
+                three_add_code = string("COPYI") + " " + call->place + " " + RT_I;
+				code_buffer.emit(three_add_code);
+        } else if(func_entry->ret_type == float_){
+                call0->place = var_table.front().next_temp_reg(float_);
+                three_add_code = string("COPYF") + " " + call->place + " " + RT_F;
+				code_buffer.emit(three_add_code);
+        }
+
+        
+
+	}	//rule closing braces
 ;
 
-CALL_ARGS : CALL_ARGLIST { $$ = makeNode("CALL_ARGS",NULL,$1); }
-	| /* epsilon */ { $$ = makeNode("CALL_ARGS",NULL,makeNode("EPSILON",NULL,NULL)); }
+CALL_ARGS : CALL_ARGLIST { 		//---------------------------------------------rule below finished-----------------------------------------
+		$$ = new CallArgsSymbol();
+		CallArgsSymbol* call_arg0 = dynamic_cast<CallArgsSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		CallArgsSymbol* call_arglist1 = dynamic_cast<CallArgsSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		call_arg0->exp_args = call_arglist1->exp_args;	//parent symbol gets son symbol expressions
+	}
+	| /* epsilon */ { 
+		$$ = new CallArgsSymbol();
+	}
 ;
 
-CALL_ARGLIST : CALL_ARGLIST ',' EXP { $$ = makeNode("CALL_ARGLIST",NULL,concatList(concatList($1,$2),$3)); }
-	| EXP { $$ = makeNode("CALL_ARGLIST",NULL,$1); }
+CALL_ARGLIST : CALL_ARGLIST ',' EXP { 		//---------------------------------------------rule below finished-----------------------------
+		$$ = new CallArgsSymbol();
+		CallArgsSymbol* call_arglist0 = dynamic_cast<CallArgsSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		CallArgsSymbol* call_arglist1 = dynamic_cast<CallArgsSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp = dynamic_cast<ExpSymbol*>($3);					//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		if(exp->exp_type == void_t){
+			semantic_err("rule 2: can't declare function parameter of type void");
+		}
+		call_arglist0->exp_args = call_arglist1->exp_args;	//parent symbol gets son symbol expressions
+		call_arglist0->exp_args.push_back(*exp);			//adding exp to parent expression vector
+
+	}
+	| EXP { 
+		$$ = new CallArgsSymbol();
+		CallArgsSymbol* call_arglist0 = dynamic_cast<CallArgsSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp = dynamic_cast<ExpSymbol*>($3);					//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		if(exp->exp_type == void_t){
+			semantic_err("rule 2: can't declare func parameter of type void");
+		}
+		call_arglist0->exp_args.push_back(*exp);			//adding exp to parent expression vector
+	}
 ;
-N : /* epsilon */ { $$.nextlist = makelist(code_buffer.nextquad()); code_buffer.emit("goto ");}
-M : /* epsilon */ { $$.quad = code_buffer.nextquad(); }
+
+N : /* epsilon */ {		//---------------------------------------------rule below finished-------------------------------------------------
+		Marker_M_Symbol* M = new Marker_M_Symbol();
+		M->quad = code_buffer.nextquad();
+		$$ = M;
+	}
+;
+
+M : /* epsilon */ {		//---------------------------------------------rule below finished-------------------------------------------------
+		Marker_N_Symbol* N = new Marker_N_Symbol();
+		N->nextlist.pushback(code_buffer.nextquad());
+		code.emit("UJUMP -1");
+		$$ = N;
+	}
+;
+
 %%
 
 /* Bison Epilogue */
@@ -171,3 +664,12 @@ void yyerror(const char*){
 	exit(2);
 }
 
+void semantic_err(string err){
+	printf("semantic error: '%s' in line number %d\n", err, yylineno);
+	exit(3);
+}
+
+void operational_err(string err){
+	printf("Operational error: %s\n", err);
+	exit(9);
+}

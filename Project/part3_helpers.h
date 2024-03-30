@@ -14,7 +14,7 @@
 
 using namespace std;
 
-#define YYSTYPE Node // changed yylval type to Node
+#define YYSTYPE Node* // changed yylval type to Node*
 //#ifdef __cplusplus
 //extern "C" {
 //#endif
@@ -76,7 +76,7 @@ public:
 // A class for a terminal node in parse tree
 class Terminal : public Node{
 public:
-    string terminal_val;
+    string terminal_value;
     Terminal(string type);
     Terminal(string type, string terminal_val);
 };
@@ -84,14 +84,14 @@ public:
 // A class for a expression symbol in parse tree
 class ExpSymbol : public Node{
 public:
-    Type expType;
+    Type exp_type;
     string place;
 };
 
 // A class for a type symbol in parse tree
 class TypeSymbol : public Node{
 public:
-    Type typeValue;
+    Type type_value;
 };
 
 // A class for a statement symbol in parse tree
@@ -104,15 +104,15 @@ public:
 // A class for a boolean expression symbol in parse tree
 class BexpSymbol : public Node{
 public:
-    vector<int> truelist;
-    vector<int> falselist;
+    list<int> truelist;
+    list<int> falselist;
 };
 
 // A class for a declaration expression symbol in parse tree
 class DclSymbol : public Node{
 public:
     vector<string> dcl_list;
-    Type idType;
+    Type id_type;
 };
 
 // A class for a function API expression symbol in parse tree
@@ -144,7 +144,7 @@ public:
 // A class for N marker symbol
 class Marker_N_Symbol : public Node{
 public:
-    vector<int> n_nextlist;
+    vector<int> nextlist;
 };
 
 
@@ -226,7 +226,7 @@ public:
 
 class Function_Table {
 public:
-    map<string, Function_Table_Entry> func_table;
+    map<string, Function_Table_Entry> func_table_mp;
     Function_Table_Entry* curr_func_entry;
 
     Function_Table_Entry* find_func_entry(string id);
@@ -261,7 +261,7 @@ public:
     int nextquad();
 
     Vec_buf();
-    void backpatch(vector<int> commitment_list, int line_number);
+    void backpatch(list<int> commitment_list, int line_number);
     void print_code(ofstream& output_file);
     //emit uses template therefore must be implemented here
     //template<typename... Args_to_emit>

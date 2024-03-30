@@ -285,16 +285,16 @@ bool Function_Table_Entry::is_matching(Type& other_ret_type, string& other_func_
 /**************************************************************************/
 
 Function_Table_Entry* Function_Table::find_func_entry(string id){
-    auto it = func_table.find(id);  //map method
-    if(it != func_table.end()) //found the function entry
+    auto it = func_table_mp.find(id);  //map method
+    if(it != func_table_mp.end()) //found the function entry
         return &(it->second);
     return NULL;
 }
 
 Function_Table_Entry* Function_Table::insert_func_entry(Type& ret_type, string& func_id, vector<Arg_dcl_data>& func_args){
     Function_Table_Entry newEntry(ret_type, func_id, func_args);
-    func_table.insert( pair<string,Function_Table_Entry>(func_id, newEntry));
-    auto it = func_table.find(func_id);
+    func_table_mp.insert( pair<string,Function_Table_Entry>(func_id, newEntry));
+    auto it = func_table_mp.find(func_id);
     return &(it->second);
 }
 
