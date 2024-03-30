@@ -253,7 +253,7 @@ bool variable_table::find_var_in_block(string id) {
 
 
 
-Function_Table_Entry::Function_Table_Entry(Type& ret_type, string& func_id, vector<Arg_dcl_data>& func_args) :     // constructor
+Function_Table_Entry::Function_Table_Entry(Type& ret_type, string& func_id, vector<Arg_dcl>& func_args) :     // constructor
     def_line(-1) , ret_type(ret_type), func_id(func_id), func_args(func_args) {};
 
 string Function_Table_Entry::get_func_def_place(int caller_line){
@@ -268,7 +268,7 @@ void Function_Table_Entry::define_and_backpatch(int func_def_line){
     code_buffer.backpatch(callers_list, func_def_line);     //backpatch func_def address to all callers
 }
  
-bool Function_Table_Entry::is_matching(Type& other_ret_type, string& other_func_id, vector<Arg_dcl_data>& other_func_args){
+bool Function_Table_Entry::is_matching(Type& other_ret_type, string& other_func_id, vector<Arg_dcl>& other_func_args){
     if(ret_type != other_ret_type || func_id != other_func_id || func_args.size() != other_func_args.size())
         return false;       //checks if any of the function properties is different
     
@@ -291,7 +291,7 @@ Function_Table_Entry* Function_Table::find_func_entry(string id){
     return NULL;
 }
 
-Function_Table_Entry* Function_Table::insert_func_entry(Type& ret_type, string& func_id, vector<Arg_dcl_data>& func_args){
+Function_Table_Entry* Function_Table::insert_func_entry(Type& ret_type, string& func_id, vector<Arg_dcl>& func_args){
     Function_Table_Entry newEntry(ret_type, func_id, func_args);
     func_table_mp.insert( pair<string,Function_Table_Entry>(func_id, newEntry));
     auto it = func_table_mp.find(func_id);

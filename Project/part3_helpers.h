@@ -27,10 +27,10 @@ typedef enum {
 	} Type;
 
 // Defining arguments format
-typedef struct Arg_dcl {
+/*typedef */struct Arg_dcl {
     string id;
     Type type;
-} Arg_dcl_data;
+} /*Arg_dcl_data*/;
 
 #define INT_REG_START 5
 #define FLOAT_REG_START 4
@@ -111,7 +111,7 @@ public:
 // A class for a declaration expression symbol in parse tree
 class DclSymbol : public Node{
 public:
-    vector<string> dcl_list;
+    list<string> dcl_list;
     Type id_type;
 };
 
@@ -194,7 +194,7 @@ public:
 class variable_table {  //upper level table
 public:
     list<Table_block_scope> block_tables;
-    list<Arg_dcl_data> func_args;
+    list<Arg_dcl> func_args;
 
     void add_block_table();
     void remove_block_table();

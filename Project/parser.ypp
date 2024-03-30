@@ -87,34 +87,173 @@ FUNC_ARGLIST : FUNC_ARGLIST ',' DCL { $$ = makeNode("FUNC_ARGLIST",NULL,concatLi
 	| DCL { $$ = makeNode("FUNC_ARGLIST",NULL,$1); }
 ;
 
-BLK : '{' STLIST '}' { $$ = makeNode("BLK",NULL,concatList(concatList($1,$2),$3)); }
+BLK : '{' {	//mid rule action@@@-------------------------------------------rule below finished---------------------------------------------
+		var_table.add_block_table();	//add var table for this block
+		//add all the variables to the created block
+		if(var_table.func_args.size() > 0){
+			for(Arg_dcl arg : var_table.func_args){
+				var_table.block_tables.front().insert_variable(arg.id, arg.type);
+			}
+			var_table.func_args.clear();	//empty the list of arguments
+		}
+
+	}
+	STLIST '}' { 
+		$$=new StmtSymbol();
+        StmtSymbol *blk0 = dynamic_cast<StmtSymbol*>($$);
+        StmtSymbol *stlist1 = dynamic_cast<StmtSymbol*>($3);
+        blk0->nextlist = stlist1->nextlist;
+        blk0->breaklist = stlist1->breaklist;
+        var_table.remove_block_table();		//remove the block table when exiting the block
+	}
 ;
 
-DCL : ID ':' TYPE { $$ = makeNode("DCL",NULL,concatList(concatList($1,$2),$3)); }
-	| ID ',' DCL { $$ = makeNode("DCL",NULL,concatList(concatList($1,$2),$3)); }
+DCL : ID ':' TYPE {  	//-------------------------------------------------rule below finished---------------------------------------------
+		$$ = new DclSymbol();
+		DclSymbol* dcl0 = dynamic_cast<DclSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Terminal* id1 = dynamic_cast<Terminal*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		TypeSymbol* type1 = dynamic_cast<TypeSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		if(type1->type_value == void_t){
+            semantic_error("rule 2: can't declare variable of type void");
+		}
+                
+        dcl0->id_type = type1->type_value;
+        dcl0->dcl_list.push_front(id->terminal_value);
+	}
+	| ID ',' DCL { 
+		$$ = new DclSymbol();
+		DclSymbol* dcl0 = dynamic_cast<DclSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Terminal* id1 = dynamic_cast<Terminal*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		DclSymbol* dcl1 = dynamic_cast<DclSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		//check if variable is already declared in this scope
+		if(find(begin(dcl1->dcl_list), end(dcl1->dcl_list), id1->terminal_value)){	//find method for list
+			string err = string("rule 6: redeclaration of '") + id1->terminal_value + "'";
+			semantic_err(err);
+		}
+
+		dcl0->id_type = dcl1->id_type;
+        dcl0->dcl_list = dcl1->dcl_list;
+        dcl0->dcl_list.push_front(id->terminal_value);
+
+	}
 ;
 
-TYPE : INT { $$ = makeNode("TYPE",NULL,$1); }
-	| FLOAT { $$ = makeNode("TYPE",NULL,$1); }
-	| VOID { $$ = makeNode("TYPE",NULL,$1); }
+TYPE : INT { 	//---------------------------------------------------------rule below finished---------------------------------------------
+		$$ = new TypeSymbol();
+		$$->type_value = int_;	//maybe need casting like ((NodeType*)$$)
+	}
+	| FLOAT { 
+		$$ = new TypeSymbol();
+		$$->type_value = float_;	//maybe need casting like ((NodeType*)$$)
+	}
+	| VOID { 
+		$$ = new TypeSymbol();
+		$$->type_value = void_t;	//maybe need casting like ((NodeType*)$$)
+	}
 ;
 
-STLIST : STLIST STMT { $$ = makeNode("STLIST",NULL,concatList($1,$2)); }
-	| /* epsilon */ { $$ = makeNode("STLIST",NULL,makeNode("EPSILON",NULL,NULL)); }
+STLIST : STLIST M STMT {	//---------------------------------------------rule below finished---------------------------------------------
+		$$ = new StmtSymbol();
+		StmtSymbol* stlist0 = dynamic_cast<StmtSymbol*>($$);
+        StmtSymbol* stlist1 = dynamic_cast<StmtSymbol*>($1);
+        Marker_M_Symbol* M1 = dynamic_cast<Marker_M_Symbol*>($2);
+        StmtSymbol* stmt1 = dynamic_cast<StmtSymbol*>($3);
+
+		code_buffer.backpatch(stlist1->nextlist, M1->quad);
+        stlist0->nextlist.merge(stmt1->nextlist);
+        stlist0->breaklist.merge(stmt1->breaklist);
+        stlist0->breaklist.merge(stlist1->breaklist);
+	}
+	| /* epsilon */ { 
+		$$ = new StmtSymbol();
+	}
 ;
 
-STMT : DCL ';' { $$ = makeNode("STMT",NULL,concatList($1,$2)); }
-	| ASSN { $$ = makeNode("STMT",NULL,$1); }
-	| EXP ';' { $$ = makeNode("STMT",NULL,concatList($1,$2)); }
-	| CNTRL { $$ = makeNode("STMT",NULL,$1); }
-	| read { $$ = makeNode("STMT",NULL,$1); }
-	| write { $$ = makeNode("STMT",NULL,$1); }
-	| return { $$ = makeNode("STMT",NULL,$1); }
-	| BLK { $$ = makeNode("STMT",NULL,$1); }
+STMT : DCL ';' { 		//---------------------------------------------rule below finished-------------------------------------------------
+		$$ = new StmtSymbol();
+		/*here is the place for dynamic casting to parent but i see no use*/
+		DclSymbol* dcl1 = dynamic_cast<DclSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		for(string id : dcl1->dcl_list){
+			//check if variable is already declared in this scope
+			if(find_var_in_block(id)){
+				string err = string("rule 6: redeclaration of '") + id + "'";
+				semantic_err(err);
+			}
+			var_table.block_tables.front().insert_variable(id, dcl1->id_type);	//add this variable to the inner-most block
+		}
+		string three_add_code = string("ADD2I") + " " + SP + " " + SP + " " + to_string(dcl1->dcl_list.size() * 4);	//add variables to stack
+		code_buffer.emit(three_add_code);
+	}
+	| ASSN { 
+		$$ = new StmtSymbol();
+	}
+	| EXP ';' { 
+		$$ = new StmtSymbol();
+	}
+	| CNTRL { 
+		$$ = new StmtSymbol();
+		StmtSymbol* stmt0 = dynamic_cast<StmtSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		StmtSymbol* cntrl1 = dynamic_cast<StmtSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		stmt0->nextlist = cntrl1->nextlist;
+		stmt0->breaklist = cntrl1->breaklist;
+	}
+	| read { 
+		$$ = new StmtSymbol();
+	}
+	| write { 
+		$$ = new StmtSymbol();
+	}
+	| return { 
+		$$ = new StmtSymbol();
+	}
+	| BLK { 
+		$$ = new StmtSymbol();
+		StmtSymbol* stmt0 = dynamic_cast<StmtSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		StmtSymbol* blk1 = dynamic_cast<StmtSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		stmt0->nextlist = blk1->nextlist;
+		stmt0->breaklist = blk1->breaklist;
+	}
 ;
 
-return : RETURN EXP ';' { $$ = makeNode("RETURN",NULL,concatList(concatList($1,$2),$3)); }
-	| RETURN';' { $$ = makeNode("RETURN",NULL,concatList($1,$2)); }
+return : RETURN EXP ';' {		//---------------------------------------------rule below finished-----------------------------------------
+		$$ = new Node();
+		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		//check return types
+		if(func_table.curr_func_entry->ret_type != exp1->exp_type){
+            semantic_err("rule 1 :function and expression types are different");
+		} 
+
+		if(exp1->exp_type == void_t){	
+            semantic_err("rule 2: can't assign from variable of type void");	//shouldn't get here
+		}
+
+		//move return value to defined return register
+		string three_add_code;
+		if(exp->exp_type == int_){
+            three_add_code = string("COPYI") + " " + RT_I + " " + exp1->place;
+			code_buffer.emit(three_add_code);
+		}
+        else if(exp->exp_type == float_){
+            three_add_code = string("COPYF") + " " + RT_F + " " + exp1->place;
+			code_buffer.emit();
+		}
+
+		code_buffer.emit("RETRN");
+	}
+	| RETURN';' { 
+		$$ = new Node();
+
+		if(func_table.curr_func_entry->ret_type != eVOID){
+            semantic_err("return with no value, in non-void function");
+		}
+        code_buffer.emit("RETRN");
+	}
 ;
 
 write : WRITE '(' EXP ')' ';' { //---------------------------------------------rule below finished-----------------------------------------
