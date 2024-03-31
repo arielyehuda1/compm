@@ -44,47 +44,208 @@ PROGRAM :	FDEFS	{ 		//---------------------------------------------rule below fi
 			}
 ;
 
-FDEFS :		FDEFS FUNC_DEF_API BLK { 
+FDEFS :		FDEFS FUNC_DEF_API {	//mid rule action@@@-------------------rule below finished---------------------------------------------
+				/*here is the place for dynamic casting to parent but i see no use*/
+				FuncApiSymbol* func_dec_api1 = dynamic_cast<FuncApiSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
 				
+				Function_Table_Entry* func_entry = func_table.find_func_entry(func_dec_api1.func_id);
+
+				if(func_entry == NULL){
+					func_entry = func_table.insert_func_entry(func_dec_api1->ret_type, func_dec_api1->func_id, func_dec_api1->func_args);
+				}
+				else{	//the function is defined
+					if(!func_entry->is_matching(func_dec_api1->ret_type, func_dec_api1->func_id, func_dec_api1->func_args)){
+						string err = string("rule 3: definition of function'") + func_dec_api1->func_id + "' doesn't match it's declaration";
+						semantic_err(err);
+					}
+					if(func_entry->def_line != -1){	//function already defined, check this later!!!!!!!!
+						string err = string("redefinition of function'") + func_dec_api1->func_id + "'";
+						semantic_err(err);
+					}
+				}
+
+				func_entry->func_args = func_dec_api1->func_args;
+				func_table.curr_func_entry = func_entry;
+				var_table.func_args = func_entry->func_args;
+				func_entry->define_and_backpatch(code_buffer.nextQuad());
+
+			}
+			BLK { 
+				$$ = new Node();
+				StmtSymbol *blk1 = dynamic_cast<StmtSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+				//if(!blk1->breaklist.empty()){		//REMOVE, break is not possible in this project
+				//	
+				//}
+
+				code_buffer.backpatch(blk1->nextlist, code_buffer.nextQuad());
+				code_buffer.emit("RETRN");	//rule 5: in case no explicit return, ensure returning to caller
+
 			}
 			| FDEFS FUNC_DEC_API { 
+				$$ = new Node();
+				/*here is the place for dynamic casting to parent but i see no use*/
+				FuncApiSymbol* func_dec_api1 = dynamic_cast<FuncApiSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
 				
+				Function_Table_Entry* func_entry = func_table.find_func_entry(func_dec_api1.func_id);
+
+				if(func_entry == NULL){
+					func_entry = func_table.insert_func_entry(func_dec_api1->ret_type, func_dec_api1->func_id, func_dec_api1->func_args);
+				}
+				else{	//the function is defined
+					if(!func_entry->is_matching(func_dec_api1->ret_type, func_dec_api1->func_id, func_dec_api1->func_args)){
+						string err = string("redeclaration of function'") + func_dec_api1->func_id + "'";
+						semantic_err(err);
+					}
+				}
 			}
 			| /* epsilon */ { 
 				$$ = new Node();
 			}
 ;
 
-FUNC_DEC_API : TYPE ID '(' ')' ';' { $$ = makeNode("FUNC_DEC_API",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
-	| TYPE ID '(' FUNC_ARGLIST ')' ';'	{ $$ = makeNode("FUNC_DEC_API",NULL,concatList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6)); }
-	| TYPE ID '(' FUNC_DEC_ARGLIST_OPT ')' ';' { $$ = makeNode("FUNC_DEC_API",NULL,concatList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6)); }
-	| TYPE ID '(' FUNC_ARGLIST ',' FUNC_DEC_ARGLIST_OPT ')' ';' { $$ = makeNode("FUNC_DEC_API",NULL,concatList(concatList(concatList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6),$7),$8)); }
+FUNC_DEC_API : TYPE ID '(' ')' ';' { //---------------------------------------------rule below finished------------------------------------
+		$$ = new FuncApiSymbol();
+		FuncApiSymbol* func_dec_api0 = dynamic_cast<FuncApiSymbol*>($$);
+		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+        Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		func_dec_api0->ret_type = type1->type_value;
+		func_dec_api0->func_id = id1->terminal_value;
+	}
+	| TYPE ID '(' FUNC_ARGLIST ')' ';'	{ //---------------------------------------------rule below finished-------------------------------
+		$$ = new FuncApiSymbol();
+		FuncApiSymbol* func_dec_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+        Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		func_dec_api0->ret_type = type1->type_value;
+		func_dec_api0->func_id = id1->terminal_value;
+		func_dec_api0->func_args = func_arglist1->args;
+	}
+	| TYPE ID '(' FUNC_DEC_ARGLIST_OPT ')' ';' { //+++++++++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++++++++
+		$$ = new FuncApiSymbol();
+		FuncApiSymbol* func_dec_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+        Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+	}
+	| TYPE ID '(' FUNC_ARGLIST ',' FUNC_DEC_ARGLIST_OPT ')' ';' { //++++++++++++++rule contains optional+++++++++++++++++++++++++++++++++++
+		$$ = new FuncApiSymbol();
+		FuncApiSymbol* func_dec_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+        Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+	}
 ;
 
-FUNC_DEC_ARGLIST_OPT : FUNC_DEC_ARGLIST_OPT',' DCL_OPT { $$ = makeNode("FUNC_DEC_ARGLIST_OPT",NULL,concatList(concatList($1,$2),$3)); } /* DO WE WANNA KNOW? */
-	| DCL_OPT { $$ = makeNode("FUNC_DEC_ARGLIST_OPT",NULL,$1); }
+FUNC_DEC_ARGLIST_OPT : FUNC_DEC_ARGLIST_OPT',' DCL_OPT { //++++++++++++++++++++rule contains optional++++++++++++++++++++++++++++++++++++++
+		
+	} 
+	| DCL_OPT {		//++++++++++++++++++++++++++++++++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++++++++++++++
+		
+	}
 ;
 
-DCL_OPT : ID ':' OPTIONAL TYPE { $$ = makeNode("DCL_OPT",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
-	| ID',' DCL_OPT { $$ = makeNode("DCL_OPT",NULL,concatList(concatList($1,$2),$3)); }
+DCL_OPT : ID ':' OPTIONAL TYPE { //+++++++++++++++++++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++++++++++++++
+		
+	}
+	| ID',' DCL_OPT {		//++++++++++++++++++++++++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++++++++++++++
+		
+	}
 ;
 
-FUNC_DEF_API : TYPE ID '(' ')' { $$ = makeNode("FUNC_DEF_API",NULL,concatList(concatList(concatList($1,$2),$3),$4));}
-	| TYPE ID '(' FUNC_ARGLIST ')' { $$ = makeNode("FUNC_DEF_API",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
-	| TYPE ID '(' FUNC_DEF_ARGLIST_OPT ')' { $$ = makeNode("FUNC_DEF_API",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
-	| TYPE ID '(' FUNC_ARGLIST ',' FUNC_DEF_ARGLIST_OPT ')' { $$ = makeNode("FUNC_DEF_API",NULL,concatList(concatList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6),$7)); }
+FUNC_DEF_API : TYPE ID '(' ')' { 
+		$$ = new FuncApiSymbol();
+		FuncApiSymbol* func_def_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+        Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		func_def_api0->ret_type = type1->type_value;
+		func_def_api0->func_id = id1->terminal_value;
+	}
+	| TYPE ID '(' FUNC_ARGLIST ')' { 
+		$$ = new FuncApiSymbol();
+		FuncApiSymbol* func_def_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+        Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		func_def_api0->ret_type = type1->type_value;
+		func_def_api0->func_id = id1->terminal_value;
+		func_def_api0->func_args = func_arglist1->args;
+
+	}
+	| TYPE ID '(' FUNC_DEF_ARGLIST_OPT ')' { //+++++++++++++++++++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++
+		$$ = new FuncApiSymbol();
+		FuncApiSymbol* func_def_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+        Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+
+	}
+	| TYPE ID '(' FUNC_ARGLIST ',' FUNC_DEF_ARGLIST_OPT ')' { //++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++
+		$$ = new FuncApiSymbol();
+		FuncApiSymbol* func_def_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+        Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+	}
 ;
 
-FUNC_DEF_ARGLIST_OPT : FUNC_DEF_ARGLIST_OPT ',' DCL_OPT_VAL { $$ = makeNode("FUNC_DEF_ARGLIST_OPT",NULL,concatList(concatList($1,$2),$3)); }
-	| DCL_OPT_VAL { $$ = makeNode("FUNC_DEF_ARGLIST_OPT",NULL,$1); }
+FUNC_DEF_ARGLIST_OPT : FUNC_DEF_ARGLIST_OPT ',' DCL_OPT_VAL { //+++++++++++++++++++++++++++++rule contains optional++++++++++++++++++++++++
+		
+	}
+	| DCL_OPT_VAL { //++++++++++++++++++++++++++++++++++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++++++++++++
+		
+	}
 ;
 
-DCL_OPT_VAL : ID ASSIGN NUM ':' OPTIONAL TYPE { $$ = makeNode("DCL_OPT_VAL",NULL,concatList(concatList(concatList(concatList(concatList($1,$2),$3),$4),$5),$6)); }
-	| ID ASSIGN NUM ',' DCL_OPT_VAL { $$ = makeNode("DCL_OPT_VAL",NULL,concatList(concatList(concatList(concatList($1,$2),$3),$4),$5)); }
+DCL_OPT_VAL : ID ASSIGN NUM ':' OPTIONAL TYPE { //+++++++++++++++++++++++++++++rule contains optional++++++++++++++++++++++++++++++++++++++
+		
+	}
+	| ID ASSIGN NUM ',' DCL_OPT_VAL { //++++++++++++++++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++++++++++++
+		
+	}
 ;
 
-FUNC_ARGLIST : FUNC_ARGLIST ',' DCL { $$ = makeNode("FUNC_ARGLIST",NULL,concatList(concatList($1,$2),$3)); }
-	| DCL { $$ = makeNode("FUNC_ARGLIST",NULL,$1); }
+/*****************************************************************************************************************************************/
+/********************************************************ALL RULES BELOW ARE FINISHED*****************************************************/
+/*****************************************************************************************************************************************/
+
+FUNC_ARGLIST : FUNC_ARGLIST ',' DCL { //-----------------------------------rule below finished---------------------------------------------
+		$$=new FuncArgsSymbol();
+        FuncArgsSymbol* func_arglist0 = dynamic_cast<FuncArgsSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+        DclSymbol* dcl1 = dynamic_cast<DclSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		
+		func_arglist0->args = func_arglist1->args;	//parent symbol gets child symbol argument list
+		for(string id : dcl1->dcl_list){
+            for(Arg_dcl arg_i : func_arglist0->args){
+				if(arg_i.id == id){	//variable already declared for this function
+					string err = string("rule 6: redeclaration of '") + id + "'";
+					semantic_err(err);
+				}
+			}
+			//variable doesn't exist in func list, so we add it
+			Arg_dcl arg = {id, dcl1->id_type};
+            func_arglist0->args.push_back(arg);
+        }
+
+	}
+	| DCL { 
+		$$=new FuncArgsSymbol();
+        FuncArgsSymbol* func_arglist0 = dynamic_cast<FuncArgsSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+        DclSymbol* dcl1 = dynamic_cast<DclSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
+		//for every variable in declaration list, we create argument and add it to function argument list
+        for(string id : dcl1->dcl_list){
+            Arg_dcl arg = {id, dcl1->id_type};
+            func_arglist0->args.push_back(arg);
+        }
+	}
 ;
 
 BLK : '{' {	//mid rule action@@@-------------------------------------------rule below finished---------------------------------------------
@@ -100,10 +261,11 @@ BLK : '{' {	//mid rule action@@@-------------------------------------------rule 
 	}
 	STLIST '}' { 
 		$$=new StmtSymbol();
-        StmtSymbol *blk0 = dynamic_cast<StmtSymbol*>($$);
-        StmtSymbol *stlist1 = dynamic_cast<StmtSymbol*>($3);
+        StmtSymbol *blk0 = dynamic_cast<StmtSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+        StmtSymbol *stlist1 = dynamic_cast<StmtSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
         blk0->nextlist = stlist1->nextlist;
-        blk0->breaklist = stlist1->breaklist;
+        //blk0->breaklist = stlist1->breaklist;	//REMOVE, break is not possible in this project
         var_table.remove_block_table();		//remove the block table when exiting the block
 	}
 ;
@@ -163,8 +325,8 @@ STLIST : STLIST M STMT {	//---------------------------------------------rule bel
 
 		code_buffer.backpatch(stlist1->nextlist, M1->quad);
         stlist0->nextlist.merge(stmt1->nextlist);
-        stlist0->breaklist.merge(stmt1->breaklist);
-        stlist0->breaklist.merge(stlist1->breaklist);
+        //stlist0->breaklist.merge(stmt1->breaklist);	//REMOVE, break is not possible in this project
+        //stlist0->breaklist.merge(stlist1->breaklist);	//REMOVE, break is not possible in this project
 	}
 	| /* epsilon */ { 
 		$$ = new StmtSymbol();
@@ -199,7 +361,7 @@ STMT : DCL ';' { 		//---------------------------------------------rule below fin
 		StmtSymbol* cntrl1 = dynamic_cast<StmtSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
 
 		stmt0->nextlist = cntrl1->nextlist;
-		stmt0->breaklist = cntrl1->breaklist;
+		//stmt0->breaklist = cntrl1->breaklist;	//REMOVE, break is not possible in this project
 	}
 	| read { 
 		$$ = new StmtSymbol();
@@ -216,7 +378,7 @@ STMT : DCL ';' { 		//---------------------------------------------rule below fin
 		StmtSymbol* blk1 = dynamic_cast<StmtSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
 
 		stmt0->nextlist = blk1->nextlist;
-		stmt0->breaklist = blk1->breaklist;
+		//stmt0->breaklist = blk1->breaklist;	//REMOVE, break is not possible in this project
 	}
 ;
 
@@ -396,8 +558,8 @@ CNTRL : IF BEXP THEN M STMT ELSE N M STMT {     //------------------------------
         cntrl0->nextlist.merge(N1->nextlist);
         cntrl0->nextlist.merge(stmt1->nextlist);
         cntrl0->nextlist.merge(stmt2->nextlist);
-        cntrl0->breaklist.merge(stmt1->breaklist);
-        cntrl0->breaklist.merge(stmt2->breaklist);
+        //cntrl0->breaklist.merge(stmt1->breaklist);	//REMOVE, break is not possible in this project
+        //cntrl0->breaklist.merge(stmt2->breaklist);	//REMOVE, break is not possible in this project
 
 	}
 	| IF BEXP THEN M STMT { 
@@ -410,7 +572,7 @@ CNTRL : IF BEXP THEN M STMT ELSE N M STMT {     //------------------------------
 		code_buffer.backpatch(bexp1->truelist, M1->quad);
 		cntrl0->nextlist.merge(bexp1->falselist);
 		cntrl0->nextlist.merge(stmt1->nextlist);
-		cntrl0->breaklist.merge(stmt1->breaklist);
+		//cntrl0->breaklist.merge(stmt1->breaklist);	//REMOVE, break is not possible in this project
 
 	}
 	| WHILE M BEXP DO M STMT { 
@@ -424,7 +586,7 @@ CNTRL : IF BEXP THEN M STMT ELSE N M STMT {     //------------------------------
 		code_buffer.backpatch(bexp1->truelist, M2->quad);
 		code_buffer.backpatch(stmt1->nextlist, M1->quad);
 		cntrl0->nextlist.merge(bexp1->falselist);
-		cntrl0->nextlist.merge(stmt1->breaklist);
+		//cntrl0->nextlist.merge(stmt1->breaklist);	//REMOVE, break is not possible in this project
 		string three_add_code = string("UJUMP") + " " + to_string(M1->quad);
 		code_buffer.emit(three_add_code);
 	}
@@ -499,7 +661,7 @@ BEXP : BEXP OR M BEXP {    		//---------------------------------------------rule
 				code_buffer.emit(three_add_code);
 			}
 			bexp->truelist.push_back(code_buffer.nextQuad());
-            three_add_code = string("BNEQZ") + " " + result_reg + " " + "-1";	//expressions equal --> res=1 , why the emit is here???????????
+            three_add_code = string("BNEQZ") + " " + result_reg + " " + "-1";	//expressions equal --> res=1 , why the emit is here???????
 			code_buffer.emit(three_add_code); 
             break;
 		case "<>":
@@ -516,7 +678,7 @@ BEXP : BEXP OR M BEXP {    		//---------------------------------------------rule
 				code_buffer.emit(three_add_code);
 			}
 			bexp->truelist.push_back(code_buffer.nextQuad());
-            three_add_code = string("BNEQZ") + " " + result_reg + " " + "-1";	// why the emit is here???????????
+            three_add_code = string("BNEQZ") + " " + result_reg + " " + "-1";	// why the emit is here????????????????????????????????????
 			code_buffer.emit(three_add_code); 
             break;
 		case "<":
@@ -533,7 +695,7 @@ BEXP : BEXP OR M BEXP {    		//---------------------------------------------rule
 				code_buffer.emit(three_add_code);
 			}
 			bexp->truelist.push_back(code_buffer.nextQuad());
-            three_add_code = string("BNEQZ") + " " + result_reg + " " + "-1";	// why the emit is here???????????
+            three_add_code = string("BNEQZ") + " " + result_reg + " " + "-1";	// why the emit is here????????????????????????????????????
 			code_buffer.emit(three_add_code); 
             break;
 		case "<=":
@@ -550,7 +712,7 @@ BEXP : BEXP OR M BEXP {    		//---------------------------------------------rule
 				code_buffer.emit(three_add_code);
 			}
 			bexp->truelist.push_back(code_buffer.nextQuad());
-            three_add_code = string("BREQZ") + " " + result_reg + " " + "-1";	//exp1 <= exp3 --> res=0 , why the emit is here???????????
+            three_add_code = string("BREQZ") + " " + result_reg + " " + "-1";	//exp1 <= exp3 --> res=0 , why the emit is here????????????
 			code_buffer.emit(three_add_code); 
             break;
 		case ">":
@@ -567,7 +729,7 @@ BEXP : BEXP OR M BEXP {    		//---------------------------------------------rule
 				code_buffer.emit(three_add_code);
 			}
 			bexp->truelist.push_back(code_buffer.nextQuad());
-            three_add_code = string("BNEQZ") + " " + result_reg + " " + "-1";	// why the emit is here???????????
+            three_add_code = string("BNEQZ") + " " + result_reg + " " + "-1";	// why the emit is here????????????????????????????????????
 			code_buffer.emit(three_add_code); 
             break;
 		case ">=":
@@ -584,7 +746,7 @@ BEXP : BEXP OR M BEXP {    		//---------------------------------------------rule
 				code_buffer.emit(three_add_code);
 			}
 			bexp->truelist.push_back(code_buffer.nextQuad());
-            three_add_code = string("BREQZ") + " " + result_reg + " " + "-1";	//exp1 <= exp3 --> res=0 , why the emit is here???????????
+            three_add_code = string("BREQZ") + " " + result_reg + " " + "-1";	//exp1 <= exp3 --> res=0 , why the emit is here????????????
 			code_buffer.emit(three_add_code); 
             break;
 		default:
@@ -816,10 +978,10 @@ CALL : ID '(' CALL_ARGS ')' {  		//---------------------------------------------
 		three_add_code = string("ADD2I") + " " + FP + " " + SP + " " + "8";	//updating frame pointer (need clearer explanation)
 		code_buffer.emit(three_add_code);
 
-		//Cast FP to FP_F - DON'T KNOW WHY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		//Cast FP to FP_F - DON'T KNOW WHY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
         three_add_code = string("CITOF") + " " + FP_F + " " + FP;
 		code_buffer.emit(three_add_code);
-		//?????????????????????????????????????????????????????????????????????????????????????????
+		//?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
 
 		/***** pre-call - store arguments, update dp and sp *****/
 		

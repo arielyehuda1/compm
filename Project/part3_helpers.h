@@ -98,7 +98,7 @@ public:
 class StmtSymbol : public Node{
 public:
     vector<int> nextlist;
-    vector<int> breaklist;
+    vector<int> breaklist;	//REMOVE, break is not possible in this project
 };
 
 // A class for a boolean expression symbol in parse tree
@@ -120,7 +120,7 @@ class FuncApiSymbol : public Node{
 public:
     Type ret_type;
     string func_id;
-    vector<Arg_dcl_data> func_args;
+    vector<Arg_dcl> func_args;
 };
 
 // A class for a call function expression symbol in parse tree
@@ -132,7 +132,7 @@ public:
 // A class for a function's arguments expression symbol in parse tree
 class FuncArgsSymbol : public Node{
 public:
-    vector<Arg_dcl_data> args;
+    vector<Arg_dcl> args;
 };
 
 // A class for M marker symbol
@@ -214,13 +214,13 @@ public:
     int def_line;
     Type ret_type;
     string func_id;
-    vector<Arg_dcl_data> func_args;
+    vector<Arg_dcl> func_args;
     vector<int> callers_list;
 
-    Function_Table_Entry(Type& ret_type, string& func_id, vector<Arg_dcl_data>& func_args);    // constructor
+    Function_Table_Entry(Type& ret_type, string& func_id, vector<Arg_dcl>& func_args);    // constructor
     string get_func_def_place(int caller_line);
     void define_and_backpatch(int func_def_line);
-    bool is_matching(Type& other_ret_type, string& other_func_id, vector<Arg_dcl_data>& other_func_args);
+    bool is_matching(Type& other_ret_type, string& other_func_id, vector<Arg_dcl>& other_func_args);
 
 };
 
@@ -230,7 +230,7 @@ public:
     Function_Table_Entry* curr_func_entry;
 
     Function_Table_Entry* find_func_entry(string id);
-    Function_Table_Entry* insert_func_entry(Type& ret_type, string& func_id, vector<Arg_dcl_data>& func_args);
+    Function_Table_Entry* insert_func_entry(Type& ret_type, string& func_id, vector<Arg_dcl>& func_args);
 
 
 };
