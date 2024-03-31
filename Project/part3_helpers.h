@@ -98,7 +98,7 @@ public:
 class StmtSymbol : public Node{
 public:
     vector<int> nextlist;
-    vector<int> breaklist;	//REMOVE, break is not possible in this project
+    //vector<int> breaklist;	//REMOVE, break is not possible in this project
 };
 
 // A class for a boolean expression symbol in parse tree
@@ -121,6 +121,8 @@ public:
     Type ret_type;
     string func_id;
     vector<Arg_dcl> func_args;
+    //bool is_optional;
+    //vector
 };
 
 // A class for a call function expression symbol in parse tree

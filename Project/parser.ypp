@@ -129,14 +129,15 @@ FUNC_DEC_API : TYPE ID '(' ')' ';' { //-----------------------------------------
 		FuncApiSymbol* func_dec_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
         Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		//FuncArgsOptSymbol* func_arglist_opt1 = dynamic_cast<FuncArgsOptSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
 	}
 	| TYPE ID '(' FUNC_ARGLIST ',' FUNC_DEC_ARGLIST_OPT ')' ';' { //++++++++++++++rule contains optional+++++++++++++++++++++++++++++++++++
 		$$ = new FuncApiSymbol();
 		FuncApiSymbol* func_dec_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
         Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		//FuncArgsOptSymbol* func_arglist_opt1 = dynamic_cast<FuncArgsOptSymbol*>($6);	//don't know if necessary, maybe work dircetly through $$,S1,...
 	}
 ;
 
@@ -182,7 +183,7 @@ FUNC_DEF_API : TYPE ID '(' ')' {
 		FuncApiSymbol* func_def_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
         Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		//FuncArgsOptSymbol* func_arglist_opt1 = dynamic_cast<FuncArgsOptSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
 
 	}
 	| TYPE ID '(' FUNC_ARGLIST ',' FUNC_DEF_ARGLIST_OPT ')' { //++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++
@@ -191,15 +192,24 @@ FUNC_DEF_API : TYPE ID '(' ')' {
 		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
         Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		//FuncArgsOptSymbol* func_arglist_opt1 = dynamic_cast<FuncArgsOptSymbol*>($6);	//don't know if necessary, maybe work dircetly through $$,S1,...
 
 	}
 ;
 
 FUNC_DEF_ARGLIST_OPT : FUNC_DEF_ARGLIST_OPT ',' DCL_OPT_VAL { //+++++++++++++++++++++++++++++rule contains optional++++++++++++++++++++++++
-		
+		//$$=new FuncArgsOptSymbol();
+        //FuncArgsOptSymbol* func_arglist_opt0 = dynamic_cast<FuncArgsOptSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		//FuncArgsOptSymbol* func_arglist_opt1 = dynamic_cast<FuncArgsOptSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+        //DclOptSymbol* dcl_opt1 = dynamic_cast<DclOptSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
 	}
+
 	| DCL_OPT_VAL { //++++++++++++++++++++++++++++++++++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++++++++++++
-		
+		//$$=new FuncArgsOptSymbol();
+        //FuncArgsOptSymbol* func_arglist_opt0 = dynamic_cast<FuncArgsOptSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
+        //DclOptSymbol* dcl_opt1 = dynamic_cast<DclOptSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+
 	}
 ;
 
@@ -219,7 +229,7 @@ FUNC_ARGLIST : FUNC_ARGLIST ',' DCL { //-----------------------------------rule 
 		$$=new FuncArgsSymbol();
         FuncArgsSymbol* func_arglist0 = dynamic_cast<FuncArgsSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
-        DclSymbol* dcl1 = dynamic_cast<DclSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+        DclSymbol* dcl1 = dynamic_cast<DclSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		
 		func_arglist0->args = func_arglist1->args;	//parent symbol gets child symbol argument list
 		for(string id : dcl1->dcl_list){
@@ -996,7 +1006,7 @@ CALL : ID '(' CALL_ARGS ')' {  		//---------------------------------------------
 				string err = string("rule 3: wrong type of argument passed to function '") + id1->terminal_value +"'";
 				semantic_error(err);
 			}
-
+			//optional types check
             if(func_arg_it->type == int_){
                 three_add_code = string("STORI") + " " + exp_arg_it->place + " " + FP + " " + to_string(i * 4);
 				code_buffer.emit(three_add_code);
@@ -1089,14 +1099,14 @@ CALL_ARGLIST : CALL_ARGLIST ',' EXP { 		//--------------------------------------
 	}
 ;
 
-N : /* epsilon */ {		//---------------------------------------------rule below finished-------------------------------------------------
+M : /* epsilon */ {		//---------------------------------------------rule below finished-------------------------------------------------
 		Marker_M_Symbol* M = new Marker_M_Symbol();
 		M->quad = code_buffer.nextquad();
 		$$ = M;
 	}
 ;
 
-M : /* epsilon */ {		//---------------------------------------------rule below finished-------------------------------------------------
+N : /* epsilon */ {		//---------------------------------------------rule below finished-------------------------------------------------
 		Marker_N_Symbol* N = new Marker_N_Symbol();
 		N->nextlist.pushback(code_buffer.nextquad());
 		code.emit("UJUMP -1");
