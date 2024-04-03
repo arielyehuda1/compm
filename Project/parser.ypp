@@ -4,7 +4,7 @@
 	
 	using namespace std;
 
-	int yylex();
+	extern int yylex();
 	extern int yylineno;
     extern const char* yytext;
 	
@@ -40,34 +40,36 @@
 
 PROGRAM :	FDEFS	{ 		//---------------------------------------------rule below finished---------------------------------------------
 				root_node = new Node();		//maybe need to change to lower class (like symbol node)
-				code_buffer.emit("HALT");	//end of program
+				string three_add_code = "HALT";
+				code_buffer.emit(three_add_code);	//end of program
 			}
 ;
 
 FDEFS :		FDEFS FUNC_DEF_API {	//mid rule action@@@-------------------rule below finished---------------------------------------------
 				/*here is the place for dynamic casting to parent but i see no use*/
-				FuncApiSymbol* func_dec_api1 = dynamic_cast<FuncApiSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
+				//1.casting
+				FuncApiSymbol* func_def_api1 = dynamic_cast<FuncApiSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
 				
-				Function_Table_Entry* func_entry = func_table.find_func_entry(func_dec_api1.func_id);
-
-				if(func_entry == NULL){
-					func_entry = func_table.insert_func_entry(func_dec_api1->ret_type, func_dec_api1->func_id, func_dec_api1->func_args);
+				//2.check function
+				Function_Table_Entry* func_entry = func_table.find_func_entry(func_def_api1->func_id);
+				if(func_entry == NULL){		//not in symbol table - add it
+					func_entry = func_table.insert_func_entry(func_def_api1->ret_type, func_def_api1->func_id, func_def_api1->func_args);
 				}
 				else{	//the function is defined
-					if(!func_entry->is_matching(func_dec_api1->ret_type, func_dec_api1->func_id, func_dec_api1->func_args)){
-						string err = string("rule 3: definition of function'") + func_dec_api1->func_id + "' doesn't match it's declaration";
+					if(!func_entry->is_matching(func_def_api1->ret_type, func_def_api1->func_id, func_def_api1->func_args)){
+						string err = string("rule 3: definition of function'") + func_def_api1->func_id + "' doesn't match it's declaration";
 						semantic_err(err);
 					}
 					if(func_entry->def_line != -1){	//function already defined, check this later!!!!!!!!
-						string err = string("redefinition of function'") + func_dec_api1->func_id + "'";
+						string err = string("function already defined before '") + func_def_api1->func_id + "'";
 						semantic_err(err);
 					}
 				}
-
-				func_entry->func_args = func_dec_api1->func_args;
+				//3. assignments
+				func_entry->func_args = func_def_api1->func_args;
 				func_table.curr_func_entry = func_entry;
 				var_table.func_args = func_entry->func_args;
-				func_entry->define_and_backpatch(code_buffer.nextQuad());
+				func_entry->define_and_backpatch(code_buffer.nextquad());
 
 			}
 			BLK { 
@@ -78,18 +80,17 @@ FDEFS :		FDEFS FUNC_DEF_API {	//mid rule action@@@-------------------rule below 
 				//	
 				//}
 
-				code_buffer.backpatch(blk1->nextlist, code_buffer.nextQuad());
+				code_buffer.backpatch(blk1->nextlist, code_buffer.nextquad());
 				code_buffer.emit("RETRN");	//rule 5: in case no explicit return, ensure returning to caller
 
 			}
 			| FDEFS FUNC_DEC_API { 
+				//1.casting
 				$$ = new Node();
-				/*here is the place for dynamic casting to parent but i see no use*/
 				FuncApiSymbol* func_dec_api1 = dynamic_cast<FuncApiSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
-				
+				//2.check function
 				Function_Table_Entry* func_entry = func_table.find_func_entry(func_dec_api1.func_id);
-
-				if(func_entry == NULL){
+				if(func_entry == NULL){		//not in symbol table - add it
 					func_entry = func_table.insert_func_entry(func_dec_api1->ret_type, func_dec_api1->func_id, func_dec_api1->func_args);
 				}
 				else{	//the function is defined
@@ -105,118 +106,99 @@ FDEFS :		FDEFS FUNC_DEF_API {	//mid rule action@@@-------------------rule below 
 ;
 
 FUNC_DEC_API : TYPE ID '(' ')' ';' { //---------------------------------------------rule below finished------------------------------------
+		//1.casting
 		$$ = new FuncApiSymbol();
 		FuncApiSymbol* func_dec_api0 = dynamic_cast<FuncApiSymbol*>($$);
 		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
         Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		//2.assignments
 		func_dec_api0->ret_type = type1->type_value;
 		func_dec_api0->func_id = id1->terminal_value;
 	}
 	| TYPE ID '(' FUNC_ARGLIST ')' ';'	{ //---------------------------------------------rule below finished-------------------------------
+		//1.casting
 		$$ = new FuncApiSymbol();
 		FuncApiSymbol* func_dec_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
         Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		//2.assignments
 		func_dec_api0->ret_type = type1->type_value;
 		func_dec_api0->func_id = id1->terminal_value;
 		func_dec_api0->func_args = func_arglist1->args;
 	}
-	| TYPE ID '(' FUNC_DEC_ARGLIST_OPT ')' ';' { //+++++++++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++++++++
-		$$ = new FuncApiSymbol();
-		FuncApiSymbol* func_dec_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
-        Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		//FuncArgsOptSymbol* func_arglist_opt1 = dynamic_cast<FuncArgsOptSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
+	| TYPE ID '(' FUNC_DEC_ARGLIST_OPT ')' ';' { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
+		
 	}
-	| TYPE ID '(' FUNC_ARGLIST ',' FUNC_DEC_ARGLIST_OPT ')' ';' { //++++++++++++++rule contains optional+++++++++++++++++++++++++++++++++++
-		$$ = new FuncApiSymbol();
-		FuncApiSymbol* func_dec_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
-        Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		//FuncArgsOptSymbol* func_arglist_opt1 = dynamic_cast<FuncArgsOptSymbol*>($6);	//don't know if necessary, maybe work dircetly through $$,S1,...
+	| TYPE ID '(' FUNC_ARGLIST ',' FUNC_DEC_ARGLIST_OPT ')' ';' { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
+		
 	}
 ;
 
-FUNC_DEC_ARGLIST_OPT : FUNC_DEC_ARGLIST_OPT',' DCL_OPT { //++++++++++++++++++++rule contains optional++++++++++++++++++++++++++++++++++++++
+FUNC_DEC_ARGLIST_OPT : FUNC_DEC_ARGLIST_OPT',' DCL_OPT { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
 		
 	} 
-	| DCL_OPT {		//++++++++++++++++++++++++++++++++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++++++++++++++
+	| DCL_OPT {		//+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
 		
 	}
 ;
 
-DCL_OPT : ID ':' OPTIONAL TYPE { //+++++++++++++++++++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++++++++++++++
+DCL_OPT : ID ':' OPTIONAL TYPE { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
 		
 	}
-	| ID',' DCL_OPT {		//++++++++++++++++++++++++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++++++++++++++
+	| ID',' DCL_OPT {		//+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
 		
 	}
 ;
 
 FUNC_DEF_API : TYPE ID '(' ')' { 
+		//1.casting
 		$$ = new FuncApiSymbol();
 		FuncApiSymbol* func_def_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
         Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		//2.assignments
 		func_def_api0->ret_type = type1->type_value;
 		func_def_api0->func_id = id1->terminal_value;
 	}
 	| TYPE ID '(' FUNC_ARGLIST ')' { 
+		//1.casting
 		$$ = new FuncApiSymbol();
 		FuncApiSymbol* func_def_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
         Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		//2.assignments
 		func_def_api0->ret_type = type1->type_value;
 		func_def_api0->func_id = id1->terminal_value;
 		func_def_api0->func_args = func_arglist1->args;
 
 	}
-	| TYPE ID '(' FUNC_DEF_ARGLIST_OPT ')' { //+++++++++++++++++++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++
-		$$ = new FuncApiSymbol();
-		FuncApiSymbol* func_def_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
-        Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		//FuncArgsOptSymbol* func_arglist_opt1 = dynamic_cast<FuncArgsOptSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
+	| TYPE ID '(' FUNC_DEF_ARGLIST_OPT ')' { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
+		
 
 	}
-	| TYPE ID '(' FUNC_ARGLIST ',' FUNC_DEF_ARGLIST_OPT ')' { //++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++
-		$$ = new FuncApiSymbol();
-		FuncApiSymbol* func_def_api0 = dynamic_cast<FuncApiSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
-        Terminal *id1 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		//FuncArgsOptSymbol* func_arglist_opt1 = dynamic_cast<FuncArgsOptSymbol*>($6);	//don't know if necessary, maybe work dircetly through $$,S1,...
+	| TYPE ID '(' FUNC_ARGLIST ',' FUNC_DEF_ARGLIST_OPT ')' { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
+		
 
 	}
 ;
 
-FUNC_DEF_ARGLIST_OPT : FUNC_DEF_ARGLIST_OPT ',' DCL_OPT_VAL { //+++++++++++++++++++++++++++++rule contains optional++++++++++++++++++++++++
-		//$$=new FuncArgsOptSymbol();
-        //FuncArgsOptSymbol* func_arglist_opt0 = dynamic_cast<FuncArgsOptSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		//FuncArgsOptSymbol* func_arglist_opt1 = dynamic_cast<FuncArgsOptSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
-        //DclOptSymbol* dcl_opt1 = dynamic_cast<DclOptSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
+FUNC_DEF_ARGLIST_OPT : FUNC_DEF_ARGLIST_OPT ',' DCL_OPT_VAL { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
+		
 
 	}
 
-	| DCL_OPT_VAL { //++++++++++++++++++++++++++++++++++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++++++++++++
-		//$$=new FuncArgsOptSymbol();
-        //FuncArgsOptSymbol* func_arglist_opt0 = dynamic_cast<FuncArgsOptSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
-        //DclOptSymbol* dcl_opt1 = dynamic_cast<DclOptSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+	| DCL_OPT_VAL { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
+		
 
 	}
 ;
 
-DCL_OPT_VAL : ID ASSIGN NUM ':' OPTIONAL TYPE { //+++++++++++++++++++++++++++++rule contains optional++++++++++++++++++++++++++++++++++++++
+DCL_OPT_VAL : ID ASSIGN NUM ':' OPTIONAL TYPE { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
 		
 	}
-	| ID ASSIGN NUM ',' DCL_OPT_VAL { //++++++++++++++++++++++++++++++++++++rule contains optional+++++++++++++++++++++++++++++++++++++++++
+	| ID ASSIGN NUM ',' DCL_OPT_VAL { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
 		
 	}
 ;
@@ -226,15 +208,16 @@ DCL_OPT_VAL : ID ASSIGN NUM ':' OPTIONAL TYPE { //+++++++++++++++++++++++++++++r
 /*****************************************************************************************************************************************/
 
 FUNC_ARGLIST : FUNC_ARGLIST ',' DCL { //-----------------------------------rule below finished---------------------------------------------
+		//1.casting
 		$$=new FuncArgsSymbol();
         FuncArgsSymbol* func_arglist0 = dynamic_cast<FuncArgsSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
         DclSymbol* dcl1 = dynamic_cast<DclSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		
+		//2.check parameters - if needed we do assignments
 		func_arglist0->args = func_arglist1->args;	//parent symbol gets child symbol argument list
 		for(string id : dcl1->dcl_list){
             for(Arg_dcl arg_i : func_arglist0->args){
-				if(arg_i.id == id){	//variable already declared for this function
+				if(arg_i.id == id){	//duplicate name for that variable
 					string err = string("rule 6: redeclaration of '") + id + "'";
 					semantic_err(err);
 				}
@@ -246,10 +229,11 @@ FUNC_ARGLIST : FUNC_ARGLIST ',' DCL { //-----------------------------------rule 
 
 	}
 	| DCL { 
+		//1.casting
 		$$=new FuncArgsSymbol();
         FuncArgsSymbol* func_arglist0 = dynamic_cast<FuncArgsSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
         DclSymbol* dcl1 = dynamic_cast<DclSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		//2.assignments
 		//for every variable in declaration list, we create argument and add it to function argument list
         for(string id : dcl1->dcl_list){
             Arg_dcl arg = {id, dcl1->id_type};
@@ -260,7 +244,7 @@ FUNC_ARGLIST : FUNC_ARGLIST ',' DCL { //-----------------------------------rule 
 
 BLK : '{' {	//mid rule action@@@-------------------------------------------rule below finished---------------------------------------------
 		var_table.add_block_table();	//add var table for this block
-		//add all the variables to the created block
+		//add all the variables to the created block so it knows them
 		if(var_table.func_args.size() > 0){
 			for(Arg_dcl arg : var_table.func_args){
 				var_table.block_tables.front().insert_variable(arg.id, arg.type);
@@ -281,30 +265,32 @@ BLK : '{' {	//mid rule action@@@-------------------------------------------rule 
 ;
 
 DCL : ID ':' TYPE {  	//-------------------------------------------------rule below finished---------------------------------------------
+		//1.casting
 		$$ = new DclSymbol();
 		DclSymbol* dcl0 = dynamic_cast<DclSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		Terminal* id1 = dynamic_cast<Terminal*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		TypeSymbol* type1 = dynamic_cast<TypeSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		//2.var check
 		if(type1->type_value == void_t){
             semantic_error("rule 2: can't declare variable of type void");
 		}
-                
+        //3.assignments        
         dcl0->id_type = type1->type_value;
         dcl0->dcl_list.push_front(id->terminal_value);
 	}
 	| ID ',' DCL { 
+		//1.casting
 		$$ = new DclSymbol();
 		DclSymbol* dcl0 = dynamic_cast<DclSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		Terminal* id1 = dynamic_cast<Terminal*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		DclSymbol* dcl1 = dynamic_cast<DclSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		//2.var check
 		//check if variable is already declared in this scope
 		if(find(begin(dcl1->dcl_list), end(dcl1->dcl_list), id1->terminal_value)){	//find method for list
 			string err = string("rule 6: redeclaration of '") + id1->terminal_value + "'";
 			semantic_err(err);
 		}
-
+		//3.assignments
 		dcl0->id_type = dcl1->id_type;
         dcl0->dcl_list = dcl1->dcl_list;
         dcl0->dcl_list.push_front(id->terminal_value);
@@ -327,12 +313,13 @@ TYPE : INT { 	//---------------------------------------------------------rule be
 ;
 
 STLIST : STLIST M STMT {	//---------------------------------------------rule below finished---------------------------------------------
+		//1.casting
 		$$ = new StmtSymbol();
 		StmtSymbol* stlist0 = dynamic_cast<StmtSymbol*>($$);
         StmtSymbol* stlist1 = dynamic_cast<StmtSymbol*>($1);
         Marker_M_Symbol* M1 = dynamic_cast<Marker_M_Symbol*>($2);
         StmtSymbol* stmt1 = dynamic_cast<StmtSymbol*>($3);
-
+		//2.control flow
 		code_buffer.backpatch(stlist1->nextlist, M1->quad);
         stlist0->nextlist.merge(stmt1->nextlist);
         //stlist0->breaklist.merge(stmt1->breaklist);	//REMOVE, break is not possible in this project
@@ -344,10 +331,10 @@ STLIST : STLIST M STMT {	//---------------------------------------------rule bel
 ;
 
 STMT : DCL ';' { 		//---------------------------------------------rule below finished-------------------------------------------------
+		//1.casting
 		$$ = new StmtSymbol();
-		/*here is the place for dynamic casting to parent but i see no use*/
 		DclSymbol* dcl1 = dynamic_cast<DclSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		//2. var check
 		for(string id : dcl1->dcl_list){
 			//check if variable is already declared in this scope
 			if(find_var_in_block(id)){
@@ -356,6 +343,7 @@ STMT : DCL ';' { 		//---------------------------------------------rule below fin
 			}
 			var_table.block_tables.front().insert_variable(id, dcl1->id_type);	//add this variable to the inner-most block
 		}
+		//3. add var to the stack
 		string three_add_code = string("ADD2I") + " " + SP + " " + SP + " " + to_string(dcl1->dcl_list.size() * 4);	//add variables to stack
 		code_buffer.emit(three_add_code);
 	}
@@ -366,10 +354,11 @@ STMT : DCL ';' { 		//---------------------------------------------rule below fin
 		$$ = new StmtSymbol();
 	}
 	| CNTRL { 
+		//1.casting
 		$$ = new StmtSymbol();
 		StmtSymbol* stmt0 = dynamic_cast<StmtSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		StmtSymbol* cntrl1 = dynamic_cast<StmtSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		//2.control flow
 		stmt0->nextlist = cntrl1->nextlist;
 		//stmt0->breaklist = cntrl1->breaklist;	//REMOVE, break is not possible in this project
 	}
@@ -382,21 +371,22 @@ STMT : DCL ';' { 		//---------------------------------------------rule below fin
 	| return { 
 		$$ = new StmtSymbol();
 	}
-	| BLK { 
+	| BLK {
+		//1.casting
 		$$ = new StmtSymbol();
 		StmtSymbol* stmt0 = dynamic_cast<StmtSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		StmtSymbol* blk1 = dynamic_cast<StmtSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		//2.control flow
 		stmt0->nextlist = blk1->nextlist;
 		//stmt0->breaklist = blk1->breaklist;	//REMOVE, break is not possible in this project
 	}
 ;
 
 return : RETURN EXP ';' {		//---------------------------------------------rule below finished-----------------------------------------
+		//1.casting
 		$$ = new Node();
 		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
-		//check return types
+		//2.check return types
 		if(func_table.curr_func_entry->ret_type != exp1->exp_type){
             semantic_err("rule 1 :function and expression types are different");
 		} 
@@ -404,8 +394,7 @@ return : RETURN EXP ';' {		//---------------------------------------------rule b
 		if(exp1->exp_type == void_t){	
             semantic_err("rule 2: can't assign from variable of type void");	//shouldn't get here
 		}
-
-		//move return value to defined return register
+		//3.move return value to defined return register
 		string three_add_code;
 		if(exp->exp_type == int_){
             three_add_code = string("COPYI") + " " + RT_I + " " + exp1->place;
@@ -415,12 +404,10 @@ return : RETURN EXP ';' {		//---------------------------------------------rule b
             three_add_code = string("COPYF") + " " + RT_F + " " + exp1->place;
 			code_buffer.emit();
 		}
-
 		code_buffer.emit("RETRN");
 	}
 	| RETURN';' { 
 		$$ = new Node();
-
 		if(func_table.curr_func_entry->ret_type != eVOID){
             semantic_err("return with no value, in non-void function");
 		}
@@ -429,10 +416,10 @@ return : RETURN EXP ';' {		//---------------------------------------------rule b
 ;
 
 write : WRITE '(' EXP ')' ';' { //---------------------------------------------rule below finished-----------------------------------------
+		//1.casting
 		$$ = new Node();
-		/*here is the place for dynamic casting to parent but i see no use*/
 		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		//2.execute assembly
 		string three_add_code;
         if(exp->exp_type == int_){
             three_add_code = string("PRNTI") + " " + exp->place;
@@ -448,10 +435,10 @@ write : WRITE '(' EXP ')' ';' { //---------------------------------------------r
 
 	}
 	| WRITE '(' STR ')' ';' { 
+		//1.casting
 		$$ = new Node();
-		/*here is the place for dynamic casting to parent but i see no use*/
 		Terminal* str1 = dynamic_cast<Terminal*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		//2.execute assembly
 		//check special character within string
 		string str = str1->terminal_value;
 		for(int i = 0; i < str.length(); i++){
@@ -477,7 +464,7 @@ write : WRITE '(' EXP ')' ';' { //---------------------------------------------r
 		}
 	}
 ;
-
+// Nadav reached here
 read : READ '(' LVAL ')' ';' { 	//---------------------------------------------rule below finished-----------------------------------------
 		$$ = new Node();
 		Node* read0 = dynamic_cast<Node*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -1090,7 +1077,7 @@ CALL_ARGLIST : CALL_ARGLIST ',' EXP { 		//--------------------------------------
 	| EXP { 
 		$$ = new CallArgsSymbol();
 		CallArgsSymbol* call_arglist0 = dynamic_cast<CallArgsSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		ExpSymbol* exp = dynamic_cast<ExpSymbol*>($3);					//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp = dynamic_cast<ExpSymbol*>($1);					//don't know if necessary, maybe work dircetly through $$,S1,...
 
 		if(exp->exp_type == void_t){
 			semantic_err("rule 2: can't declare func parameter of type void");

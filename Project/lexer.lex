@@ -2,8 +2,8 @@
 #include <stdio.h>
 #include <string.h>
 void showError();
-#include "part2_helpers.h"
-#include "part2.tab.hpp"
+#include "part3_helpers.h"
+#include "parser.tab.hpp"
 %}
 
 %option yylineno noyywrap

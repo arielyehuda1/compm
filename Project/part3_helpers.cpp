@@ -301,6 +301,7 @@ Function_Table_Entry* Function_Table::insert_func_entry(Type& ret_type, string& 
 // NEED TO ADD 2 METHODS FOR LINKER SUPPORT
 
 
+
 /**************************************************************************/
 /*                           Main of parser                               */
 /**************************************************************************/
@@ -317,3 +318,6 @@ int main(void)
     //return rc;
     return 0;
 }
+
+
+

@@ -1,19 +1,19 @@
-#makefile to create executable syntax analyser
+#makefile to create executable compiler
 
-CC = g++
+CC = g++ -std=c++11 -fmax-errors=3 -o 
 LEX = flex
 YACC = bison
 
-all:	part2
+all:	part3
 
-part2.tab.cpp:	part2.ypp part2_helpers.h
-	$(YACC) -d part2.ypp
+parser.tab.cpp: parser.ypp part3_helpers.cpp part3_helpers.h
+	$(YACC) -vd parser.ypp
 
-lex.yy.c:	part1.lex part2_helpers.h
-	$(LEX) part1.lex
+lex.yy.c:	lexer.lex part3_helpers.cpp part3_helpers.h
+	$(LEX) lexer.lex
 
-part2:	lex.yy.c part2_helpers.c part2.tab.cpp
-	$(CC) -o $@ $^
+part3:	lex.yy.c parser.tab.cpp part3_helpers.cpp part3_helpers.h
+	$(CC) rx-cc parser.tab.cpp lex.yy.c part3_helpers.cpp 
 
 clean:
-	rm -f part2 *.o lex.yy.c part2.tab.cpp part2.tab.hpp
+	rm -f *.o parser.tab.cpp lex.yy.c parser.tab.h *.gch rx-cc

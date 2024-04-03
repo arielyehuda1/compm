@@ -260,9 +260,8 @@ class Vec_buf {
 
 public:
     vector<string> buffer;
-    int nextquad();
-
     Vec_buf();
+    int nextquad();
     void backpatch(list<int> commitment_list, int line_number);
     void print_code(ofstream& output_file);
     //emit uses template therefore must be implemented here
