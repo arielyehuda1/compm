@@ -325,7 +325,7 @@ int Vec_buf::nextquad(){
 void Vec_buf::backpatch(list<int> commitment_list, int line_number) {
     for (int commitment : commitment_list) {
         if (commitment < buffer.size()) {
-            buffer[commitment] += " " + to_string(line_number); // Concatenating the jump address to the end of the string
+            buffer[commitment - 1] += " " + to_string(line_number); // Concatenating the jump address to the end of the string
         }
     }
 }

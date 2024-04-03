@@ -2204,7 +2204,7 @@ yyreduce:
 				code_buffer.emit(three_add_code);
 			}
 			bexp0->truelist.push_back(code_buffer.nextquad());
-            three_add_code = string("BNEQZ") + " " + result_reg + " " + "-1";	//expressions equal --> res=1 , why the emit is here???????
+            three_add_code = string("BNEQZ") + " " + result_reg;	//expressions equal --> res=1 , why the emit is here???????
 			code_buffer.emit(three_add_code); 
             //break;
 		}
@@ -2223,7 +2223,7 @@ yyreduce:
 				code_buffer.emit(three_add_code);
 			}
 			bexp0->truelist.push_back(code_buffer.nextquad());
-            three_add_code = string("BNEQZ") + " " + result_reg + " " + "-1";	// why the emit is here????????????????????????????????????
+            three_add_code = string("BNEQZ") + " " + result_reg;	// why the emit is here????????????????????????????????????
 			code_buffer.emit(three_add_code); 
             //break;
 		}
@@ -2242,7 +2242,7 @@ yyreduce:
 				code_buffer.emit(three_add_code);
 			}
 			bexp0->truelist.push_back(code_buffer.nextquad());
-            three_add_code = string("BNEQZ") + " " + result_reg + " " + "-1";	// why the emit is here????????????????????????????????????
+            three_add_code = string("BNEQZ") + " " + result_reg;	// why the emit is here????????????????????????????????????
 			code_buffer.emit(three_add_code); 
             //break;
 		}
@@ -2261,7 +2261,7 @@ yyreduce:
 				code_buffer.emit(three_add_code);
 			}
 			bexp0->truelist.push_back(code_buffer.nextquad());
-            three_add_code = string("BREQZ") + " " + result_reg + " " + "-1";	//exp1 <= exp2 --> res=0 , why the emit is here????????????
+            three_add_code = string("BREQZ") + " " + result_reg;	//exp1 <= exp2 --> res=0 , why the emit is here????????????
 			code_buffer.emit(three_add_code); 
             //break;
 		}
@@ -2280,7 +2280,7 @@ yyreduce:
 				code_buffer.emit(three_add_code);
 			}
 			bexp0->truelist.push_back(code_buffer.nextquad());
-            three_add_code = string("BNEQZ") + " " + result_reg + " " + "-1";	// why the emit is here????????????????????????????????????
+            three_add_code = string("BNEQZ") + " " + result_reg;	// why the emit is here????????????????????????????????????
 			code_buffer.emit(three_add_code); 
             //break;
 		}
@@ -2299,7 +2299,7 @@ yyreduce:
 				code_buffer.emit(three_add_code);
 			}
 			bexp0->truelist.push_back(code_buffer.nextquad());
-            three_add_code = string("BREQZ") + " " + result_reg + " " + "-1";	//exp1 <= exp2 --> res=0 , why the emit is here????????????
+            three_add_code = string("BREQZ") + " " + result_reg;	//exp1 <= exp2 --> res=0 , why the emit is here????????????
 			code_buffer.emit(three_add_code); 
             //break;
 		}
@@ -2310,7 +2310,7 @@ yyreduce:
 		}	//switch closing braces
 
 		bexp0->falselist.push_back(code_buffer.nextquad());	//update parent falselist
-		string jump = "UJUMP -1";
+		string jump = "UJUMP";
 		code_buffer.emit(jump);
 
 	}
@@ -2724,7 +2724,7 @@ yyreduce:
     {		//---------------------------------------------rule below finished-------------------------------------------------
 		Marker_N_Symbol* N = new Marker_N_Symbol();
 		N->nextlist.push_back(code_buffer.nextquad());
-		string jump = "UJUMP -1";
+		string jump = "UJUMP";
 		code_buffer.emit(jump);
 		(yyval) = N;
 	}
