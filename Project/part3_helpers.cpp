@@ -4,39 +4,21 @@
 
 #include "part3_helpers.h"
 
-//extern int yyparse (void);
-/*extern*/ Vec_buf code_buffer; //defined in parser
+extern int yyparse (void);
+extern Node* root_node;		//root node
+extern Vec_buf code_buffer;
+extern variable_table var_table;
+extern Function_Table func_table;
 
 using namespace std;
 
 /**************************************************************************/
-/*              Class for the buffer we emit the commands to              */
+/*               Terminal constructors implementation                     */
 /**************************************************************************/
 
-Vec_buf::Vec_buf(){}    //constructor
-
-int Vec_buf::nextquad(){
-    return buffer.size() + 1;
-}
-
-void Vec_buf::backpatch(vector<int> commitment_list, int line_number) {
-    for (int commitment : commitment_list) {
-        if (commitment < buffer.size()) {
-            buffer[commitment] += " " + to_string(line_number); // Concatenating the jump address to the end of the string
-        }
-    }
-}
-
-void Vec_buf::print_code(ofstream& output_file){
-    for(string three_add_code : buffer)
-        output_file << three_add_code << endl;
-}
-
-void Vec_buf::emit(string& str) {
-    buffer.push_back(str);
-}
-
-
+Terminal::Terminal(string type) :terminal_type(type) {};
+Terminal::Terminal(string type, string terminal_val) : 
+    terminal_type(type), terminal_value(terminal_val) {};
 
 /**************************************************************************/
 /*                       Variables Symbol Table                           */
@@ -161,7 +143,7 @@ int Table_block_scope::insert_variable(string id, Type type) {
     else if (type == int_) {
         int_table.insert_var_to_map(id, stack_offset);
     }
-    else {  //type == float_
+    else if (type == float_) {  //type == float_
         float_table.insert_var_to_map(id, stack_offset);
     }
     stack_offset += 4;  //update sp by type int/float size
@@ -253,7 +235,7 @@ bool variable_table::find_var_in_block(string id) {
 
 
 
-Function_Table_Entry::Function_Table_Entry(Type& ret_type, string& func_id, vector<Arg_dcl>& func_args) :     // constructor
+Function_Table_Entry::Function_Table_Entry(Type& ret_type, string& func_id, list<Arg_dcl>& func_args) :     // constructor
     def_line(-1) , ret_type(ret_type), func_id(func_id), func_args(func_args) {};
 
 string Function_Table_Entry::get_func_def_place(int caller_line){
@@ -268,7 +250,7 @@ void Function_Table_Entry::define_and_backpatch(int func_def_line){
     code_buffer.backpatch(callers_list, func_def_line);     //backpatch func_def address to all callers
 }
  
-bool Function_Table_Entry::is_matching(Type& other_ret_type, string& other_func_id, vector<Arg_dcl>& other_func_args){
+bool Function_Table_Entry::is_matching(Type& other_ret_type, string& other_func_id, list<Arg_dcl>& other_func_args){
     if(ret_type != other_ret_type || func_id != other_func_id || func_args.size() != other_func_args.size())
         return false;       //checks if any of the function properties is different
     
@@ -291,33 +273,126 @@ Function_Table_Entry* Function_Table::find_func_entry(string id){
     return NULL;
 }
 
-Function_Table_Entry* Function_Table::insert_func_entry(Type& ret_type, string& func_id, vector<Arg_dcl>& func_args){
+Function_Table_Entry* Function_Table::insert_func_entry(Type& ret_type, string& func_id, list<Arg_dcl>& func_args){
     Function_Table_Entry newEntry(ret_type, func_id, func_args);
     func_table_mp.insert( pair<string,Function_Table_Entry>(func_id, newEntry));
     auto it = func_table_mp.find(func_id);
     return &(it->second);
 }
 
-// NEED TO ADD 2 METHODS FOR LINKER SUPPORT
+string Function_Table::getUnimplementedCalls() {
+    string str;
+    for (auto const& funcIt : func_table_mp) {
+        Function_Table_Entry func = funcIt.second;
+        if (func.callers_list.size() != 0) {
+            str += " ";
+            str += func.func_id;
+            for (int line : func.callers_list) {
+                str += ",";
+                str += to_string(line);
+            }
+        }
+    }
+    return str;
+}
+
+string Function_Table::getImplemented() {
+    string str;
+    for (auto const& funcIt : func_table_mp) {
+        Function_Table_Entry func = funcIt.second;
+        if (func.def_line != -1) {
+            str += " ";
+            str += func.func_id;
+            str += ",";
+            str += func.get_func_def_place(0);
+        }
+    }
+    return str;
+}
+
+
+
+/**************************************************************************/
+/*              Class for the buffer we emit the commands to              */
+/**************************************************************************/
+
+Vec_buf::Vec_buf(){}    //constructor
+
+int Vec_buf::nextquad(){
+    return buffer.size() + 1;
+}
+
+void Vec_buf::backpatch(list<int> commitment_list, int line_number) {
+    for (int commitment : commitment_list) {
+        if (commitment < buffer.size()) {
+            buffer[commitment] += " " + to_string(line_number); // Concatenating the jump address to the end of the string
+        }
+    }
+}
+
+void Vec_buf::print_code(ofstream& output_file){
+    for(string three_add_code : buffer)
+        output_file << three_add_code << endl;
+}
+
+void Vec_buf::emit(string& str) {
+    buffer.push_back(str);
+}
 
 
 
 /**************************************************************************/
 /*                           Main of parser                               */
 /**************************************************************************/
-int main(void)
+int main(int argc, char** argv)
 {
-    //int rc;
+    int rc;
 #if YYDEBUG
     yydebug=1;
 #endif
-    //rc = yyparse();
-    //if (rc == 0) { // Parsed successfully
-    //    dumpParseTree();
-    //}
-    //return rc;
-    return 0;
+    
+    extern FILE* yyin;
+    // Open the input file, pass to bison 
+    yyin = fopen(argv[1], "r");
+    if (yyin == NULL) {
+        operational_err("can't open input file");
+    }
+
+    rc = yyparse();
+    if (rc == 0) { // Parsed successfully
+        ofstream outFile;
+        string outputName = argv[1];
+        bool replaceName = replace(outputName, ".cmm", ".rsk");
+        if (!replaceName) {
+            operational_err("invalid file name. must end with .cmm");
+        }
+        outFile.open(outputName);
+        //Print headers (for linker)
+        outFile << "<header>" << endl;
+        outFile << "<unimplemented>" << func_table.getUnimplementedCalls() << endl;
+        outFile << "<implemented>" << func_table.getImplemented() << endl;
+        outFile << "</header>" << endl;
+        //Print code
+        for (string c : code_buffer.buffer) {
+            outFile << c << endl;
+        }
+        outFile.close();
+    }
+    delete root_node;
+    return rc;
+    //return 0;
 }
 
+//void operational_err(string err) {
+//    const char* message = err.c_str();
+//    printf("Operational error: %s\n", message);
+//    exit(9);
+//}
 
-
+bool replace(string& str, const string& src, const string& dst) {
+    size_t start_pos = str.find(src);
+    if (start_pos == string::npos)
+        return false;
+    str.replace(start_pos, src.length(), dst);
+    return true;
+}

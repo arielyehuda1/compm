@@ -24,7 +24,7 @@ comment		(#[^\n\r]*)
 %%
 int|float|void|write|read|optional|while|do|if|then|else|return	{
 	// In case of reserved word
-	yylval = makeNode(yytext,NULL,NULL);
+	yylval = new Terminal(yytext);	
 	// all possiblities of yytext
 	if(!strcmp(yytext,"int"))
 		return INT;
@@ -55,17 +55,17 @@ int|float|void|write|read|optional|while|do|if|then|else|return	{
 }
 
 {id}	{
-	yylval = makeNode("id",yytext,NULL);
+	yylval = new Terminal("id",yytext);	
 	return ID;
 }
 
 {integernum}		{
-	yylval = makeNode("integernum",yytext,NULL);
+	yylval = new Terminal("integernum",yytext);
 	return INTEGERNUM;
 }
 
 {realnum}  {
-	yylval = makeNode("realnum",yytext,NULL);
+	yylval = new Terminal("realnum",yytext);
 	return	REALNUM;
 }
 
@@ -73,52 +73,52 @@ int|float|void|write|read|optional|while|do|if|then|else|return	{
 {str}	   {
 	// remove quotation marks from string
 	yytext[strlen(yytext)-1] = 0;
-	yylval = makeNode("str",yytext+1,NULL);
+	yylval = new Terminal("str",yytext+1);
 	return	STR;
 }
 
 
 ==|<>|<|<=|>|>=		{
-	yylval = makeNode("relop",yytext,NULL);
+	yylval = new Terminal("relop",yytext);
 	return	RELOP;
 }
 
 
 \+|\-		{
-	yylval = makeNode("addop",yytext,NULL);
+	yylval = new Terminal("addop",yytext);
 	return	ADDOP;
 }
 
 
 \*|\/		{
-	yylval = makeNode("mulop",yytext,NULL);
+	yylval = new Terminal("mulop",yytext);
 	return	MULOP;
 }
 
 =			{
-	yylval = makeNode("assign",yytext,NULL);
+	yylval = new Terminal("assign",yytext);
 	return	ASSIGN;
 }
 
 
 &&			{
-	yylval = makeNode("and",yytext,NULL);
+	yylval = new Terminal("and",yytext);
 	return	AND;
 }
 
 \|\|		{
-	yylval = makeNode("or",yytext,NULL);
+	yylval = new Terminal("or",yytext);
 	return	OR;
 }
 
 
 !			{
-	yylval = makeNode("not",yytext,NULL);
+	yylval = new Terminal("not",yytext);
 	return	NOT;
 }
 
 {symbols}	{
-	yylval = makeNode(yytext,NULL,NULL);
+	yylval = new Terminal(yytext);
 	return	yytext[0];
 }
 

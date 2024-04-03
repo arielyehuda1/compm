@@ -14,6 +14,9 @@
 
 using namespace std;
 
+void operational_err(string err);
+bool replace(string& str, const string& src, const string& dst);
+
 #define YYSTYPE Node* // changed yylval type to Node*
 //#ifdef __cplusplus
 //extern "C" {
@@ -69,13 +72,14 @@ typedef enum {
 class Node{
 public:
     string type;    
-    Node(){}
-    virtual ~Node(); 
+    Node() {};
+    virtual ~Node(){};
 };
 
 // A class for a terminal node in parse tree
 class Terminal : public Node{
 public:
+    string terminal_type;
     string terminal_value;
     Terminal(string type);
     Terminal(string type, string terminal_val);
@@ -97,7 +101,7 @@ public:
 // A class for a statement symbol in parse tree
 class StmtSymbol : public Node{
 public:
-    vector<int> nextlist;
+    list<int> nextlist;
     //vector<int> breaklist;	//REMOVE, break is not possible in this project
 };
 
@@ -120,7 +124,7 @@ class FuncApiSymbol : public Node{
 public:
     Type ret_type;
     string func_id;
-    vector<Arg_dcl> func_args;
+    list<Arg_dcl> func_args;
     //bool is_optional;
     //vector
 };
@@ -128,13 +132,13 @@ public:
 // A class for a call function expression symbol in parse tree
 class CallArgsSymbol : public Node{
 public:
-    vector<ExpSymbol> exp_args;
+    list<ExpSymbol> exp_args;
 };
 
 // A class for a function's arguments expression symbol in parse tree
 class FuncArgsSymbol : public Node{
 public:
-    vector<Arg_dcl> args;
+    list<Arg_dcl> args;
 };
 
 // A class for M marker symbol
@@ -146,7 +150,7 @@ public:
 // A class for N marker symbol
 class Marker_N_Symbol : public Node{
 public:
-    vector<int> nextlist;
+    list<int> nextlist;
 };
 
 
@@ -216,13 +220,13 @@ public:
     int def_line;
     Type ret_type;
     string func_id;
-    vector<Arg_dcl> func_args;
-    vector<int> callers_list;
+    list<Arg_dcl> func_args;
+    list<int> callers_list;
 
-    Function_Table_Entry(Type& ret_type, string& func_id, vector<Arg_dcl>& func_args);    // constructor
+    Function_Table_Entry(Type& ret_type, string& func_id, list<Arg_dcl>& func_args);    // constructor
     string get_func_def_place(int caller_line);
     void define_and_backpatch(int func_def_line);
-    bool is_matching(Type& other_ret_type, string& other_func_id, vector<Arg_dcl>& other_func_args);
+    bool is_matching(Type& other_ret_type, string& other_func_id, list<Arg_dcl>& other_func_args);
 
 };
 
@@ -232,8 +236,9 @@ public:
     Function_Table_Entry* curr_func_entry;
 
     Function_Table_Entry* find_func_entry(string id);
-    Function_Table_Entry* insert_func_entry(Type& ret_type, string& func_id, vector<Arg_dcl>& func_args);
-
+    Function_Table_Entry* insert_func_entry(Type& ret_type, string& func_id, list<Arg_dcl>& func_args);
+    string getUnimplementedCalls();
+    string getImplemented();
 
 };
 
