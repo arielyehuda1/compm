@@ -95,7 +95,7 @@ void Table_per_type_block_scope::load_reg_update_stack(){
     int used_regs = next_temp_reg - temp_start_idx;
     if(used_regs > 0){
         //Update SP
-        three_add_code = string("SUBTI") + " " + SP + " " + SP + " " + to_string(used_regs * 4);
+        three_add_code = string("SUBTI") + " " + SP + " " + SP + " " + to_string(used_regs * 4);  // i tried delete this line, it's not it
         code_buffer.emit(three_add_code);
         string SP_reg = SP;
         if(block_table_type == float_){
@@ -193,7 +193,7 @@ void variable_table::add_block_table() {
 }
 
 void variable_table::remove_block_table() {
-    block_tables.front().empty_stack();     //first empty the stack
+    block_tables.front().empty_stack();     //first empty the stack, DEBUG maybe it's not suppose to update stack
     block_tables.pop_front();   //then pop the block table from vector
     if (block_tables.size())     //if there's still a table, reset the registers for it
         block_tables.front().reset_reg();
@@ -284,7 +284,7 @@ string Function_Table::getUnimplementedCalls() {
     string str;
     for (auto const& funcIt : func_table_mp) {
         Function_Table_Entry func = funcIt.second;
-        if (func.callers_list.size() != 0) {
+        if (func.def_line == -1) {    //callers_list.size() != 0
             str += " ";
             str += func.func_id;
             for (int line : func.callers_list) {
@@ -378,7 +378,7 @@ int main(int argc, char** argv)
         }
         outFile.close();
     }
-    delete root_node;
+    //delete root_node;
     return rc;
     //return 0;
 }

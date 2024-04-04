@@ -40,8 +40,8 @@
 
 PROGRAM :	FDEFS	{ 		//---------------------------------------------rule below finished---------------------------------------------
 				root_node = new Node();		//maybe need to change to lower class (like symbol node)
-				string three_add_code = "HALT";
-				code_buffer.emit(three_add_code);	//end of program
+				//string three_add_code = "HALT";	//the file rx-runtime.rsk add HALT
+				//code_buffer.emit(three_add_code);	//end of program
 			}
 ;
 
@@ -49,7 +49,6 @@ FDEFS :		FDEFS FUNC_DEF_API {	//mid rule action@@@-------------------rule below 
 				/*here is the place for dynamic casting to parent but i see no use*/
 				//1.casting
 				FuncApiSymbol* func_def_api1 = dynamic_cast<FuncApiSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
-				
 				//2.check function
 				Function_Table_Entry* func_entry = func_table.find_func_entry(func_def_api1->func_id);
 				if(func_entry == NULL){		//not in symbol table - add it
@@ -70,12 +69,10 @@ FDEFS :		FDEFS FUNC_DEF_API {	//mid rule action@@@-------------------rule below 
 				func_table.curr_func_entry = func_entry;
 				var_table.func_args = func_entry->func_args;
 				func_entry->define_and_backpatch(code_buffer.nextquad());
-
 			}
 			BLK { 
 				$$ = new Node();
 				StmtSymbol *blk1 = dynamic_cast<StmtSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
 				//if(!blk1->breaklist.empty()){		//REMOVE, break is not possible in this project
 				//	
 				//}
@@ -802,7 +799,6 @@ EXP : EXP ADDOP EXP {    		//---------------------------------------------rule b
 		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		Terminal* addop2 = dynamic_cast<Terminal*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		ExpSymbol* exp2 = dynamic_cast<ExpSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
 		if(exp1->exp_type != exp2->exp_type){	
 			semantic_err("ADDOP operation between different types is not allowed");
 		}
@@ -873,7 +869,7 @@ EXP : EXP ADDOP EXP {    		//---------------------------------------------rule b
 	| '(' EXP ')' { 
 		$$ = new ExpSymbol();
 		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
 
 		exp0->place = exp1->place;		//update parent symbol place
 		exp0->exp_type = exp1->exp_type;	//update parent symbol type
@@ -883,7 +879,6 @@ EXP : EXP ADDOP EXP {    		//---------------------------------------------rule b
 		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		TypeSymbol* type1 = dynamic_cast<TypeSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		ExpSymbol* exp2 = dynamic_cast<ExpSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
 		string three_add_code;
 		if(type1->type_value == exp2->exp_type){	//sam type, no casting needed
 			exp0->place = exp2->place;		//update parent symbol place
@@ -903,6 +898,7 @@ EXP : EXP ADDOP EXP {    		//---------------------------------------------rule b
 				three_add_code = string("CITOF") + " " + exp0->place + " " + exp2->place;
 				code_buffer.emit(three_add_code);
 			}
+			exp0->exp_type = type1->type_value;	//parent symbol gets the casting type
 		}
 
 	}
@@ -1047,7 +1043,7 @@ CALL : ID '(' CALL_ARGS ')' {  		//---------------------------------------------
 
 		/***** post-call - restore SP, FP *****/
         
-		three_add_code = string("COPYI") + SP + FP; //SP = FP
+		three_add_code = string("COPYI") + " " + SP + " " + FP; //SP = FP
         code_buffer.emit(three_add_code);
 		three_add_code = string("LOADI") + " " + FP + " " + FP + " " + "0";	//FP = Mem[FP+0]	
         code_buffer.emit(three_add_code);
@@ -1065,7 +1061,7 @@ CALL : ID '(' CALL_ARGS ')' {  		//---------------------------------------------
         //store the return value
         if(func_entry->ret_type == int_){
                 call0->place = var_table.block_tables.front().next_temp_reg(int_);
-                three_add_code = string("COPYI") + " " + call0->place + " " + RT_I;
+                three_add_code = string("COPYI") + " " + call0->place + " " + RT_I;	//doesn't have this line in the example
 				code_buffer.emit(three_add_code);
         } else if(func_entry->ret_type == float_){
                 call0->place = var_table.block_tables.front().next_temp_reg(float_);
@@ -1142,7 +1138,7 @@ void yyerror(const char*){
 
 void semantic_err(string err){
 	const char* message = err.c_str();
-	printf("semantic error: %s in line number %d\n", message, yylineno);
+	printf("Semantic error: %s in line number %d\n", message, yylineno);
 	exit(3);
 }
 
