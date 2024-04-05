@@ -165,8 +165,8 @@ void Table_block_scope::store_reg() {
 }
 
 void Table_block_scope::load_reg() {
+    float_table.load_reg_update_stack();    //reversed order from store, important!!!!
     int_table.load_reg_update_stack();
-    float_table.load_reg_update_stack();
 }
 
 void Table_block_scope::empty_stack() {
