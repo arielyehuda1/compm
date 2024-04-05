@@ -1,20 +1,41 @@
-#int sum(a:float,b:int){
-#    return (int)a + b;
-#}
-
-int sum(e,c:int){
-	   
-	return 3 * e;
+void foo(b:int);
+void goo();
+void boo();
+int woo(n : int){
+    foo(n);
+    goo();
+    if (n==0) then return 0;
+    if(n == 1) then return 1;
+    a:int;
+    foo(a);
+    goo();
+    return woo(n - 1) + woo(n - 2);
 }
+
+
+int voo(n : int){
+    return n;
+}
+
+
+
+#foo(a:int); is it legal?
+
+
+
+
+
+
 
 
 void main(){
-    a: int;
-    b : float;
-    intSum:int;
-    a=4;
-    b=5.5;
-    write(a);
-    intSum = sum(a,a);
-    write(intSum);
+    a : int;
+    read(a);
+
+    write("Fibonnaci value is ");
+    write(woo(a));
+    write("\n");
+
 }
+
+

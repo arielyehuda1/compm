@@ -56,11 +56,11 @@ FDEFS :		FDEFS FUNC_DEF_API {	//mid rule action@@@-------------------rule below 
 				}
 				else{	//the function is defined
 					if(!func_entry->is_matching(func_def_api1->ret_type, func_def_api1->func_id, func_def_api1->func_args)){
-						string err = string("rule 3: definition of function'") + func_def_api1->func_id + "' doesn't match it's declaration";
+						string err = string("rule 3: definition of function '") + func_def_api1->func_id + "' doesn't match it's declaration";
 						semantic_err(err);
 					}
 					if(func_entry->def_line != -1){	//function already defined, check this later!!!!!!!!
-						string err = string("function already defined before '") + func_def_api1->func_id + "'";
+						string err = string("redefinition of function '") + func_def_api1->func_id + "'";
 						semantic_err(err);
 					}
 				}
@@ -93,7 +93,7 @@ FDEFS :		FDEFS FUNC_DEF_API {	//mid rule action@@@-------------------rule below 
 				}
 				else{	//the function is defined
 					if(!func_entry->is_matching(func_dec_api1->ret_type, func_dec_api1->func_id, func_dec_api1->func_args)){
-						string err = string("redeclaration of function'") + func_dec_api1->func_id + "'";
+						string err = string("redeclaration of function '") + func_dec_api1->func_id + "'";
 						semantic_err(err);
 					}
 				}
@@ -216,7 +216,7 @@ FUNC_ARGLIST : FUNC_ARGLIST ',' DCL { //-----------------------------------rule 
 		for(string id : dcl1->dcl_list){
             for(Arg_dcl arg_i : func_arglist0->args){
 				if(arg_i.id == id){	//duplicate name for that variable
-					string err = string("rule 6: redeclaration of '") + id + "'";
+					string err = string("rule 6: redeclaration of variable '") + id + "'";
 					semantic_err(err);
 				}
 			}
@@ -287,14 +287,14 @@ DCL : ID ':' TYPE {  	//-------------------------------------------------rule be
 		auto it = dcl1->dcl_list.begin();
 		while(it != dcl1->dcl_list.end()){
 			if(*it == id1->terminal_value){
-				string err = string("rule 6: redeclaration of '") + id1->terminal_value + "'";
+				string err = string("rule 6: redeclaration of variable '") + id1->terminal_value + "'";
 				semantic_err(err);
 			}
 			it++;
 		}
 		//TODO remove below if, i implemented differently above
 		//if(std::find(dcl1->dcl_list.begin(), dcl1->dcl_list.end(), id1->terminal_value) != dcl1->dcl_list.end()){	//not sure if coorect, find method for list
-		//	string err = string("rule 6: redeclaration of '") + id1->terminal_value + "'";
+		//	string err = string("rule 6: redeclaration of variable '") + id1->terminal_value + "'";
 		//	semantic_err(err);
 		//}
 		//3.assignments
@@ -348,7 +348,7 @@ STMT : DCL ';' { 		//---------------------------------------------rule below fin
 		for(string id : dcl1->dcl_list){
 			//check if variable is already declared in this scope
 			if(var_table.find_var_in_block(id)){
-				string err = string("rule 6: redeclaration of '") + id + "'";
+				string err = string("rule 6: redeclaration of variable '") + id + "'";
 				semantic_err(err);
 			}
 			var_table.block_tables.front().insert_variable(id, dcl1->id_type);	//add this variable to the inner-most block
@@ -398,7 +398,7 @@ return : RETURN EXP ';' {		//---------------------------------------------rule b
 		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		//2.check return types
 		if(func_table.curr_func_entry->ret_type != exp1->exp_type){
-            semantic_err("rule 1 :function and expression types are different");
+            semantic_err("rule 1: assignment between different types is not allowed");
 		} 
 
 		if(exp1->exp_type == void_t){	
@@ -509,7 +509,6 @@ ASSN : LVAL ASSIGN EXP ';' {	//---------------------------------------------rule
 		StmtSymbol* assn0 = dynamic_cast<StmtSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		ExpSymbol* lval1 = dynamic_cast<ExpSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		cout << lval1->place << exp1->place << endl;
 		if(lval1->exp_type != exp1->exp_type){	
 			semantic_err("rule 1: assignment between different types is not allowed");
 		}
@@ -1017,7 +1016,7 @@ CALL : ID '(' CALL_ARGS ')' {  		//---------------------------------------------
 		for(;func_arg_it != func_entry->func_args.end();i++, func_arg_it++, exp_arg_it++){
             
 			if(exp_arg_it->exp_type != func_arg_it->type){
-				string err = string("rule 3: wrong type of argument passed to function '") + id1->terminal_value +"'";
+				string err = string("rule 3: wrong type of argument passed to function '") + func_arg_it->id +"'";
 				semantic_err(err);
 			}
 			//optional types check
@@ -1028,7 +1027,8 @@ CALL : ID '(' CALL_ARGS ')' {  		//---------------------------------------------
                 three_add_code = string("STORF") + " " + exp_arg_it->place + " " + FP_F + " " + to_string(i * 4);
 				code_buffer.emit(three_add_code);
             } else {
-                semantic_err("rule 2: can't pass parameter of type void to function ");
+                string err = string("rule 2: can't pass parameter of type void to function '") + func_arg_it->id +"'";
+				semantic_err(err);
             }
 		}
 
@@ -1065,7 +1065,6 @@ CALL : ID '(' CALL_ARGS ')' {  		//---------------------------------------------
                 call0->place = var_table.block_tables.front().next_temp_reg(int_);
                 three_add_code = string("COPYI") + " " + call0->place + " " + RT_I;	//doesn't have this line in the example
 				code_buffer.emit(three_add_code);
-				cout << call0->place << endl;
         } else if(func_entry->ret_type == float_){
                 call0->place = var_table.block_tables.front().next_temp_reg(float_);
                 three_add_code = string("COPYF") + " " + call0->place + " " + RT_F;

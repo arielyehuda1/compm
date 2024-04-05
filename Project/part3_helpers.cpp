@@ -325,7 +325,12 @@ int Vec_buf::nextquad(){
 void Vec_buf::backpatch(list<int> commitment_list, int line_number) {
     for (int commitment : commitment_list) {
         if (commitment < buffer.size()) {
-            buffer[commitment - 1] += " " + to_string(line_number);
+            if (buffer[commitment - 1].substr(buffer[commitment - 1].length() - 2) == "-1") {   //TODO my change, don't know if damaged other tests
+                buffer[commitment - 1].replace(buffer[commitment - 1].length() - 2, 2, to_string(line_number));
+            }
+            else {
+                buffer[commitment - 1] += " " + to_string(line_number);
+            }
         }
     }
 }
