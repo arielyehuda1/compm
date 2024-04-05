@@ -98,7 +98,6 @@ public:
 class StmtSymbol : public Node{
 public:
     list<int> nextlist;
-    //vector<int> breaklist;	//TODO remove this line. break is not possible in this project
 };
 
 // A class for a boolean expression symbol in parse tree

@@ -316,7 +316,7 @@ string Function_Table::implemented_funcs() {
 /*              Class for the buffer we emit the commands to              */
 /**************************************************************************/
 
-//Vec_buf::Vec_buf(){}    //constructor     TODO remove
+
 
 int Vec_buf::nextquad(){
     return buffer.size() + 1;
@@ -325,7 +325,7 @@ int Vec_buf::nextquad(){
 void Vec_buf::backpatch(list<int> commitment_list, int line_number) {
     for (int commitment : commitment_list) {
         if (commitment < buffer.size()) {
-            if (buffer[commitment - 1].substr(buffer[commitment - 1].length() - 2) == "-1") {   //TODO my change, don't know if damaged other tests
+            if (buffer[commitment - 1].substr(buffer[commitment - 1].length() - 2) == "-1") {   //TODO my change, for now not damaged other tests
                 buffer[commitment - 1].replace(buffer[commitment - 1].length() - 2, 2, to_string(line_number));
             }
             else {
