@@ -1,41 +1,17 @@
-void foo(b:int);
-void goo();
-void boo();
-int woo(n : int){
-    foo(n);
-    goo();
-    if (n==0) then return 0;
-    if(n == 1) then return 1;
+
+void main()
+{
     a:int;
-    foo(a);
-    goo();
-    return woo(n - 1) + woo(n - 2);
-}
+    n:int;
 
-
-int voo(n : int){
-    return n;
-}
-
-
-
-#foo(a:int); is it legal?
-
-
-
-
-
-
-
-
-void main(){
-    a : int;
     read(a);
+    n = 0;
+    while(a <> 0) do {
+      a = a/10;
+      n = n+1;
+    }
 
-    write("Fibonnaci value is ");
-    write(woo(a));
-    write("\n");
-
+    write("\"a\" has ");
+    write(n);
+    write(" digits\n");
 }
-
-
