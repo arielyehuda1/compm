@@ -8,7 +8,7 @@
 	extern int yylineno;
     extern const char* yytext;
 	
-	Node *root_node;		//root node
+	Node *root_node;		//root node 
 	Vec_buf code_buffer;
 	variable_table var_table;
 	Function_Table func_table;
@@ -40,13 +40,13 @@
 
 PROGRAM :	FDEFS	{ 		//---------------------------------------------rule below finished---------------------------------------------
 				root_node = new Node();		//maybe need to change to lower class (like symbol node)
-				//string three_add_code = "HALT";	//the file rx-runtime.rsk add HALT
-				//code_buffer.emit(three_add_code);	//end of program
+				//string three_add_code = "HALT";	//TODO, remove this line. the file rx-runtime.rsk add HALT
+				//code_buffer.emit(three_add_code);	//TODO, remove this line. end of program
 			}
 ;
 
 FDEFS :		FDEFS FUNC_DEF_API {	//mid rule action@@@-------------------rule below finished---------------------------------------------
-				/*here is the place for dynamic casting to parent but i see no use*/
+				//REMOVE /*here is the place for dynamic casting to parent but i see no use*/
 				//1.casting
 				FuncApiSymbol* func_def_api1 = dynamic_cast<FuncApiSymbol*>($2);	//don't know if necessary, maybe work dircetly through $$,S1,...
 				//2.check function
@@ -73,7 +73,7 @@ FDEFS :		FDEFS FUNC_DEF_API {	//mid rule action@@@-------------------rule below 
 			BLK { 
 				$$ = new Node();
 				StmtSymbol *blk1 = dynamic_cast<StmtSymbol*>($4);	//don't know if necessary, maybe work dircetly through $$,S1,...
-				//if(!blk1->breaklist.empty()){		//REMOVE, break is not possible in this project
+				//if(!blk1->breaklist.empty()){		//TODO, remove this if. break is not possible in this project
 				//	
 				//}
 
@@ -216,7 +216,7 @@ FUNC_ARGLIST : FUNC_ARGLIST ',' DCL { //-----------------------------------rule 
 		for(string id : dcl1->dcl_list){
             for(Arg_dcl arg_i : func_arglist0->args){
 				if(arg_i.id == id){	//duplicate name for that variable
-					string err = string("FUNC_ARGLISTrule 6: redeclaration of '") + id + "'";
+					string err = string("rule 6: redeclaration of '") + id + "'";
 					semantic_err(err);
 				}
 			}
@@ -250,14 +250,14 @@ BLK : '{' {	//mid rule action@@@-------------------------------------------rule 
 			var_table.func_args.clear();	//empty the list of arguments
 		}
 
-	}
+	}	//end mid rule action
 	STLIST '}' { 
 		$$=new StmtSymbol();
         StmtSymbol *blk0 = dynamic_cast<StmtSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
         StmtSymbol *stlist1 = dynamic_cast<StmtSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
 
         blk0->nextlist = stlist1->nextlist;
-        //blk0->breaklist = stlist1->breaklist;	//REMOVE, break is not possible in this project
+        //blk0->breaklist = stlist1->breaklist;	//TODO, remove break is not possible in this project
         var_table.remove_block_table();		//remove the block table when exiting the block
 	}
 ;
@@ -287,10 +287,12 @@ DCL : ID ':' TYPE {  	//-------------------------------------------------rule be
 		auto it = dcl1->dcl_list.begin();
 		while(it != dcl1->dcl_list.end()){
 			if(*it == id1->terminal_value){
-				string err = string("DCLrule 6: redeclaration of '") + id1->terminal_value + "'";
+				string err = string("rule 6: redeclaration of '") + id1->terminal_value + "'";
 				semantic_err(err);
 			}
+			it++;
 		}
+		//TODO remove below if, i implemented differently above
 		//if(std::find(dcl1->dcl_list.begin(), dcl1->dcl_list.end(), id1->terminal_value) != dcl1->dcl_list.end()){	//not sure if coorect, find method for list
 		//	string err = string("rule 6: redeclaration of '") + id1->terminal_value + "'";
 		//	semantic_err(err);
@@ -306,17 +308,17 @@ DCL : ID ':' TYPE {  	//-------------------------------------------------rule be
 TYPE : INT { 	//---------------------------------------------------------rule below finished---------------------------------------------
 		$$ = new TypeSymbol();
 		TypeSymbol* type0 = dynamic_cast<TypeSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		type0->type_value = int_;	//maybe need casting like ((NodeType*)$$)
+		type0->type_value = int_;	//changed, don't touch
 	}
 	| FLOAT { 
 		$$ = new TypeSymbol();
 		TypeSymbol* type0 = dynamic_cast<TypeSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		type0->type_value = float_;	//maybe need casting like ((NodeType*)$$)
+		type0->type_value = float_;	//changed, don't touch
 	}
 	| VOID { 
 		$$ = new TypeSymbol();
 		TypeSymbol* type0 = dynamic_cast<TypeSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
-		type0->type_value = void_t;	//maybe need casting like ((NodeType*)$$)
+		type0->type_value = void_t;	//changed, don't touch
 	}
 ;
 
@@ -330,8 +332,8 @@ STLIST : STLIST M STMT {	//---------------------------------------------rule bel
 		//2.control flow
 		code_buffer.backpatch(stlist1->nextlist, M1->quad);
         stlist0->nextlist.merge(stmt1->nextlist);
-        //stlist0->breaklist.merge(stmt1->breaklist);	//REMOVE, break is not possible in this project
-        //stlist0->breaklist.merge(stlist1->breaklist);	//REMOVE, break is not possible in this project
+        //stlist0->breaklist.merge(stmt1->breaklist);	//TODO, remove break is not possible in this project
+        //stlist0->breaklist.merge(stlist1->breaklist);	//TODO, remove break is not possible in this project
 	}
 	| /* epsilon */ { 
 		$$ = new StmtSymbol();
@@ -346,7 +348,7 @@ STMT : DCL ';' { 		//---------------------------------------------rule below fin
 		for(string id : dcl1->dcl_list){
 			//check if variable is already declared in this scope
 			if(var_table.find_var_in_block(id)){
-				string err = string("STMTrule 6: redeclaration of ") + id;
+				string err = string("rule 6: redeclaration of '") + id + "'";
 				semantic_err(err);
 			}
 			var_table.block_tables.front().insert_variable(id, dcl1->id_type);	//add this variable to the inner-most block
@@ -355,10 +357,10 @@ STMT : DCL ';' { 		//---------------------------------------------rule below fin
 		string three_add_code = string("ADD2I") + " " + SP + " " + SP + " " + to_string(dcl1->dcl_list.size() * 4);	//add variables to stack
 		code_buffer.emit(three_add_code);
 	}
-	| ASSN { 
+	| ASSN { 		//TODO weird there's no assignment from exp to stmt
 		$$ = new StmtSymbol();
 	}
-	| EXP ';' { 
+	| EXP ';' {		//TODO weird there's no assignment from exp to stmt
 		$$ = new StmtSymbol();
 	}
 	| CNTRL { 
@@ -368,7 +370,7 @@ STMT : DCL ';' { 		//---------------------------------------------rule below fin
 		StmtSymbol* cntrl1 = dynamic_cast<StmtSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		//2.control flow
 		stmt0->nextlist = cntrl1->nextlist;
-		//stmt0->breaklist = cntrl1->breaklist;	//REMOVE, break is not possible in this project
+		//stmt0->breaklist = cntrl1->breaklist;	//TODO, remove this line. break is not possible in this project
 	}
 	| read { 
 		$$ = new StmtSymbol();
@@ -386,7 +388,7 @@ STMT : DCL ';' { 		//---------------------------------------------rule below fin
 		StmtSymbol* blk1 = dynamic_cast<StmtSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		//2.control flow
 		stmt0->nextlist = blk1->nextlist;
-		//stmt0->breaklist = blk1->breaklist;	//REMOVE, break is not possible in this project
+		//stmt0->breaklist = blk1->breaklist;	//TODO, remove this line. break is not possible in this project
 	}
 ;
 
@@ -507,7 +509,7 @@ ASSN : LVAL ASSIGN EXP ';' {	//---------------------------------------------rule
 		StmtSymbol* assn0 = dynamic_cast<StmtSymbol*>($$);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		ExpSymbol* lval1 = dynamic_cast<ExpSymbol*>($1);	//don't know if necessary, maybe work dircetly through $$,S1,...
 		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>($3);	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		cout << lval1->place << exp1->place << endl;
 		if(lval1->exp_type != exp1->exp_type){	
 			semantic_err("rule 1: assignment between different types is not allowed");
 		}
@@ -569,8 +571,8 @@ CNTRL : IF BEXP THEN M STMT ELSE N M STMT {     //------------------------------
         cntrl0->nextlist.merge(N1->nextlist);
         cntrl0->nextlist.merge(stmt1->nextlist);
         cntrl0->nextlist.merge(stmt2->nextlist);
-        //cntrl0->breaklist.merge(stmt1->breaklist);	//REMOVE, break is not possible in this project
-        //cntrl0->breaklist.merge(stmt2->breaklist);	//REMOVE, break is not possible in this project
+        //cntrl0->breaklist.merge(stmt1->breaklist);	//TODO, remove this line. break is not possible in this project
+        //cntrl0->breaklist.merge(stmt2->breaklist);	//TODO, remove this line. break is not possible in this project
 
 	}
 	| IF BEXP THEN M STMT { 
@@ -583,7 +585,7 @@ CNTRL : IF BEXP THEN M STMT ELSE N M STMT {     //------------------------------
 		code_buffer.backpatch(bexp1->truelist, M1->quad);
 		cntrl0->nextlist.merge(bexp1->falselist);
 		cntrl0->nextlist.merge(stmt1->nextlist);
-		//cntrl0->breaklist.merge(stmt1->breaklist);	//REMOVE, break is not possible in this project
+		//cntrl0->breaklist.merge(stmt1->breaklist);	//TODO, remove this line. break is not possible in this project
 
 	}
 	| WHILE M BEXP DO M STMT { 
@@ -597,7 +599,7 @@ CNTRL : IF BEXP THEN M STMT ELSE N M STMT {     //------------------------------
 		code_buffer.backpatch(bexp1->truelist, M2->quad);
 		code_buffer.backpatch(stmt1->nextlist, M1->quad);
 		cntrl0->nextlist.merge(bexp1->falselist);
-		//cntrl0->nextlist.merge(stmt1->breaklist);	//REMOVE, break is not possible in this project
+		//cntrl0->nextlist.merge(stmt1->breaklist);	//TODO, remove this line. break is not possible in this project
 		string three_add_code = string("UJUMP") + " " + to_string(M1->quad);
 		code_buffer.emit(three_add_code);
 	}
@@ -659,7 +661,7 @@ BEXP : BEXP OR M BEXP {    		//---------------------------------------------rule
 		}
 		//if else on all relop operators
 		if(relop2->terminal_value == "=="){
-		//case "==":
+		//case "==":	TODO remove this line
 			if(exp1->exp_type == float_){
 				string float_reg = var_table.block_tables.front().next_temp_reg(float_);
 				three_add_code = string("SEQUF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
@@ -675,10 +677,10 @@ BEXP : BEXP OR M BEXP {    		//---------------------------------------------rule
 			bexp0->truelist.push_back(code_buffer.nextquad());
             three_add_code = string("BNEQZ") + " " + result_reg;	//expressions equal --> res=1 , why the emit is here???????
 			code_buffer.emit(three_add_code); 
-            //break;
+            //break;	TODO remove this line
 		}
 		else if(relop2->terminal_value == "<>"){
-		//case "<>":
+		//case "<>":	TODO remove this line
 			if(exp1->exp_type == float_){
 				string float_reg = var_table.block_tables.front().next_temp_reg(float_);
 				three_add_code = string("SNEQF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
@@ -694,10 +696,10 @@ BEXP : BEXP OR M BEXP {    		//---------------------------------------------rule
 			bexp0->truelist.push_back(code_buffer.nextquad());
             three_add_code = string("BNEQZ") + " " + result_reg;	// why the emit is here????????????????????????????????????
 			code_buffer.emit(three_add_code); 
-            //break;
+            //break;	TODO remove this line
 		}
 		else if(relop2->terminal_value == "<"){
-		//case "<":
+		//case "<":		TODO remove this line
 			if(exp1->exp_type == float_){
 				string float_reg = var_table.block_tables.front().next_temp_reg(float_);
 				three_add_code = string("SLETF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
@@ -713,10 +715,10 @@ BEXP : BEXP OR M BEXP {    		//---------------------------------------------rule
 			bexp0->truelist.push_back(code_buffer.nextquad());
             three_add_code = string("BNEQZ") + " " + result_reg;	// why the emit is here????????????????????????????????????
 			code_buffer.emit(three_add_code); 
-            //break;
+            //break;	TODO remove this line
 		}
 		else if(relop2->terminal_value == "<="){
-		//case "<=":
+		//case "<=":	TODO remove this line
 			if(exp1->exp_type == float_){
 				string float_reg = var_table.block_tables.front().next_temp_reg(float_);
 				three_add_code = string("SGRTF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
@@ -732,10 +734,10 @@ BEXP : BEXP OR M BEXP {    		//---------------------------------------------rule
 			bexp0->truelist.push_back(code_buffer.nextquad());
             three_add_code = string("BREQZ") + " " + result_reg;	//exp1 <= exp2 --> res=0 , why the emit is here????????????
 			code_buffer.emit(three_add_code); 
-            //break;
+            //break;	TODO remove this line
 		}
 		else if(relop2->terminal_value == ">"){
-		//case ">":
+		//case ">":		TODO remove this line
 			if(exp1->exp_type == float_){
 				string float_reg = var_table.block_tables.front().next_temp_reg(float_);
 				three_add_code = string("SGRTF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
@@ -751,10 +753,10 @@ BEXP : BEXP OR M BEXP {    		//---------------------------------------------rule
 			bexp0->truelist.push_back(code_buffer.nextquad());
             three_add_code = string("BNEQZ") + " " + result_reg;	// why the emit is here????????????????????????????????????
 			code_buffer.emit(three_add_code); 
-            //break;
+            //break;	TODO remove this line
 		}
 		else if(relop2->terminal_value == ">="){
-		//case ">=":
+		//case ">=":	TODO remove this line
 			if(exp1->exp_type == float_){
 				string float_reg = var_table.block_tables.front().next_temp_reg(float_);
 				three_add_code = string("SLETF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
@@ -770,13 +772,13 @@ BEXP : BEXP OR M BEXP {    		//---------------------------------------------rule
 			bexp0->truelist.push_back(code_buffer.nextquad());
             three_add_code = string("BREQZ") + " " + result_reg;	//exp1 <= exp2 --> res=0 , why the emit is here????????????
 			code_buffer.emit(three_add_code); 
-            //break;
+            //break;	TODO remove this line
 		}
 		else{
-		//default:
+		//default:		TODO remove this line
 			operational_err("the operator is not RELOP");
-			//break;
-		}	//switch closing braces
+			//break;	TODO remove this line
+		}	//end of if else
 
 		bexp0->falselist.push_back(code_buffer.nextquad());	//update parent falselist
 		string jump = "UJUMP";
@@ -1000,15 +1002,15 @@ CALL : ID '(' CALL_ARGS ')' {  		//---------------------------------------------
 		three_add_code = string("ADD2I") + " " + FP + " " + SP + " " + "8";	//updating frame pointer (need clearer explanation)
 		code_buffer.emit(three_add_code);
 
-		//Cast FP to FP_F - DON'T KNOW WHY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		//Cast FP to FP_F - DON'T KNOW WHY TODO remove this line
         three_add_code = string("CITOF") + " " + FP_F + " " + FP;
 		code_buffer.emit(three_add_code);
-		//?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+		//TODO remove this line
 
 		/***** pre-call - store arguments, update dp and sp *****/
 		
 		//store arguments in stack before call
-		int i = 1;	//
+		int i = 1;	
         auto func_arg_it = func_entry->func_args.begin();
         auto exp_arg_it = call_args1->exp_args.begin();
 
@@ -1063,6 +1065,7 @@ CALL : ID '(' CALL_ARGS ')' {  		//---------------------------------------------
                 call0->place = var_table.block_tables.front().next_temp_reg(int_);
                 three_add_code = string("COPYI") + " " + call0->place + " " + RT_I;	//doesn't have this line in the example
 				code_buffer.emit(three_add_code);
+				cout << call0->place << endl;
         } else if(func_entry->ret_type == float_){
                 call0->place = var_table.block_tables.front().next_temp_reg(float_);
                 three_add_code = string("COPYF") + " " + call0->place + " " + RT_F;

@@ -95,7 +95,7 @@ void Table_per_type_block_scope::load_reg_update_stack(){
     int used_regs = next_temp_reg - temp_start_idx;
     if(used_regs > 0){
         //Update SP
-        three_add_code = string("SUBTI") + " " + SP + " " + SP + " " + to_string(used_regs * 4);  // i tried delete this line, it's not it
+        three_add_code = string("SUBTI") + " " + SP + " " + SP + " " + to_string(used_regs * 4);  
         code_buffer.emit(three_add_code);
         string SP_reg = SP;
         if(block_table_type == float_){
@@ -193,7 +193,7 @@ void variable_table::add_block_table() {
 }
 
 void variable_table::remove_block_table() {
-    block_tables.front().empty_stack();     //first empty the stack, DEBUG maybe it's not suppose to update stack
+    block_tables.front().empty_stack();     //first empty the stack, TODO maybe it's not suppose to update stack
     block_tables.pop_front();   //then pop the block table from vector
     if (block_tables.size())     //if there's still a table, reset the registers for it
         block_tables.front().reset_reg();
@@ -280,11 +280,11 @@ Function_Table_Entry* Function_Table::insert_func_entry(Type& ret_type, string& 
     return &(it->second);
 }
 
-string Function_Table::getUnimplementedCalls() {
+string Function_Table::unimplemented_funcs() {
     string str;
     for (auto const& funcIt : func_table_mp) {
         Function_Table_Entry func = funcIt.second;
-        if (func.def_line == -1) {    //callers_list.size() != 0
+        if (func.def_line == -1) {    //callers_list.size() != 0    this was the previous condition
             str += " ";
             str += func.func_id;
             for (int line : func.callers_list) {
@@ -296,7 +296,7 @@ string Function_Table::getUnimplementedCalls() {
     return str;
 }
 
-string Function_Table::getImplemented() {
+string Function_Table::implemented_funcs() {
     string str;
     for (auto const& funcIt : func_table_mp) {
         Function_Table_Entry func = funcIt.second;
@@ -316,7 +316,7 @@ string Function_Table::getImplemented() {
 /*              Class for the buffer we emit the commands to              */
 /**************************************************************************/
 
-Vec_buf::Vec_buf(){}    //constructor
+//Vec_buf::Vec_buf(){}    //constructor     TODO remove
 
 int Vec_buf::nextquad(){
     return buffer.size() + 1;
@@ -325,7 +325,7 @@ int Vec_buf::nextquad(){
 void Vec_buf::backpatch(list<int> commitment_list, int line_number) {
     for (int commitment : commitment_list) {
         if (commitment < buffer.size()) {
-            buffer[commitment - 1] += " " + to_string(line_number); // Concatenating the jump address to the end of the string
+            buffer[commitment - 1] += " " + to_string(line_number);
         }
     }
 }
@@ -347,9 +347,9 @@ void Vec_buf::emit(string& str) {
 int main(int argc, char** argv)
 {
     int rc;
-#if YYDEBUG
-    yydebug=1;
-#endif
+    #if YYDEBUG
+        yydebug=1;
+    #endif
     
     extern FILE* yyin;
     // Open the input file, pass to bison 
@@ -369,8 +369,8 @@ int main(int argc, char** argv)
         outFile.open(outputName);
         //Print headers (for linker)
         outFile << "<header>" << endl;
-        outFile << "<unimplemented>" << func_table.getUnimplementedCalls() << endl;
-        outFile << "<implemented>" << func_table.getImplemented() << endl;
+        outFile << "<unimplemented>" << func_table.unimplemented_funcs() << endl;
+        outFile << "<implemented>" << func_table.implemented_funcs() << endl;
         outFile << "</header>" << endl;
         //Print code
         for (string c : code_buffer.buffer) {
@@ -378,16 +378,9 @@ int main(int argc, char** argv)
         }
         outFile.close();
     }
-    //delete root_node;
+    //delete root_node; TODO maybe uncomment this line
     return rc;
-    //return 0;
 }
-
-//void operational_err(string err) {
-//    const char* message = err.c_str();
-//    printf("Operational error: %s\n", message);
-//    exit(9);
-//}
 
 bool replace(string& str, const string& src, const string& dst) {
     size_t start_pos = str.find(src);

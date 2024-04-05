@@ -72,7 +72,7 @@
 	extern int yylineno;
     extern const char* yytext;
 	
-	Node *root_node;		//root node
+	Node *root_node;		//root node 
 	Vec_buf code_buffer;
 	variable_table var_table;
 	Function_Table func_table;
@@ -460,12 +460,12 @@ static const yytype_uint16 yyrline[] =
 {
        0,    41,    41,    48,    48,    85,   101,   106,   116,   128,
      131,   136,   139,   144,   147,   152,   162,   175,   179,   185,
-     190,   196,   199,   208,   229,   243,   243,   265,   279,   306,
-     311,   316,   323,   336,   341,   358,   361,   364,   373,   376,
-     379,   382,   393,   418,   428,   447,   482,   505,   528,   557,
-     576,   589,   606,   618,   630,   639,   786,   796,   832,   869,
-     877,   905,   935,   943,   953,   963,   975,  1077,  1084,  1089,
-    1102,  1114,  1121
+     190,   196,   199,   208,   229,   243,   243,   265,   279,   308,
+     313,   318,   325,   338,   343,   360,   363,   366,   375,   378,
+     381,   384,   395,   420,   430,   449,   484,   507,   530,   559,
+     578,   591,   608,   620,   632,   641,   788,   798,   834,   871,
+     879,   910,   940,   948,   958,   968,   980,  1082,  1089,  1094,
+    1107,  1119,  1126
 };
 #endif
 
@@ -1348,8 +1348,8 @@ yyreduce:
 #line 41 "parser.ypp" /* yacc.c:1646  */
     { 		//---------------------------------------------rule below finished---------------------------------------------
 				root_node = new Node();		//maybe need to change to lower class (like symbol node)
-				//string three_add_code = "HALT";	//the file rx-runtime.rsk add HALT
-				//code_buffer.emit(three_add_code);	//end of program
+				//string three_add_code = "HALT";	//TODO, remove this line. the file rx-runtime.rsk add HALT
+				//code_buffer.emit(three_add_code);	//TODO, remove this line. end of program
 			}
 #line 1355 "parser.tab.cpp" /* yacc.c:1646  */
     break;
@@ -1357,7 +1357,7 @@ yyreduce:
   case 3:
 #line 48 "parser.ypp" /* yacc.c:1646  */
     {	//mid rule action@@@-------------------rule below finished---------------------------------------------
-				/*here is the place for dynamic casting to parent but i see no use*/
+				//REMOVE /*here is the place for dynamic casting to parent but i see no use*/
 				//1.casting
 				FuncApiSymbol* func_def_api1 = dynamic_cast<FuncApiSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
 				//2.check function
@@ -1389,7 +1389,7 @@ yyreduce:
     { 
 				(yyval) = new Node();
 				StmtSymbol *blk1 = dynamic_cast<StmtSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-				//if(!blk1->breaklist.empty()){		//REMOVE, break is not possible in this project
+				//if(!blk1->breaklist.empty()){		//TODO, remove this if. break is not possible in this project
 				//	
 				//}
 
@@ -1608,7 +1608,7 @@ yyreduce:
 		for(string id : dcl1->dcl_list){
             for(Arg_dcl arg_i : func_arglist0->args){
 				if(arg_i.id == id){	//duplicate name for that variable
-					string err = string("FUNC_ARGLISTrule 6: redeclaration of '") + id + "'";
+					string err = string("rule 6: redeclaration of '") + id + "'";
 					semantic_err(err);
 				}
 			}
@@ -1662,7 +1662,7 @@ yyreduce:
         StmtSymbol *stlist1 = dynamic_cast<StmtSymbol*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,...
 
         blk0->nextlist = stlist1->nextlist;
-        //blk0->breaklist = stlist1->breaklist;	//REMOVE, break is not possible in this project
+        //blk0->breaklist = stlist1->breaklist;	//TODO, remove break is not possible in this project
         var_table.remove_block_table();		//remove the block table when exiting the block
 	}
 #line 1669 "parser.tab.cpp" /* yacc.c:1646  */
@@ -1700,10 +1700,12 @@ yyreduce:
 		auto it = dcl1->dcl_list.begin();
 		while(it != dcl1->dcl_list.end()){
 			if(*it == id1->terminal_value){
-				string err = string("DCLrule 6: redeclaration of '") + id1->terminal_value + "'";
+				string err = string("rule 6: redeclaration of '") + id1->terminal_value + "'";
 				semantic_err(err);
 			}
+			it++;
 		}
+		//TODO remove below if, i implemented differently above
 		//if(std::find(dcl1->dcl_list.begin(), dcl1->dcl_list.end(), id1->terminal_value) != dcl1->dcl_list.end()){	//not sure if coorect, find method for list
 		//	string err = string("rule 6: redeclaration of '") + id1->terminal_value + "'";
 		//	semantic_err(err);
@@ -1714,41 +1716,41 @@ yyreduce:
         dcl0->dcl_list.push_front(id1->terminal_value);
 
 	}
-#line 1718 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1720 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 306 "parser.ypp" /* yacc.c:1646  */
+#line 308 "parser.ypp" /* yacc.c:1646  */
     { 	//---------------------------------------------------------rule below finished---------------------------------------------
 		(yyval) = new TypeSymbol();
 		TypeSymbol* type0 = dynamic_cast<TypeSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		type0->type_value = int_;	//maybe need casting like ((NodeType*)$$)
+		type0->type_value = int_;	//changed, don't touch
 	}
-#line 1728 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1730 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 311 "parser.ypp" /* yacc.c:1646  */
+#line 313 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new TypeSymbol();
 		TypeSymbol* type0 = dynamic_cast<TypeSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		type0->type_value = float_;	//maybe need casting like ((NodeType*)$$)
+		type0->type_value = float_;	//changed, don't touch
 	}
-#line 1738 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1740 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 316 "parser.ypp" /* yacc.c:1646  */
+#line 318 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new TypeSymbol();
 		TypeSymbol* type0 = dynamic_cast<TypeSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		type0->type_value = void_t;	//maybe need casting like ((NodeType*)$$)
+		type0->type_value = void_t;	//changed, don't touch
 	}
-#line 1748 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1750 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 323 "parser.ypp" /* yacc.c:1646  */
+#line 325 "parser.ypp" /* yacc.c:1646  */
     {	//---------------------------------------------rule below finished---------------------------------------------
 		//1.casting
 		(yyval) = new StmtSymbol();
@@ -1759,22 +1761,22 @@ yyreduce:
 		//2.control flow
 		code_buffer.backpatch(stlist1->nextlist, M1->quad);
         stlist0->nextlist.merge(stmt1->nextlist);
-        //stlist0->breaklist.merge(stmt1->breaklist);	//REMOVE, break is not possible in this project
-        //stlist0->breaklist.merge(stlist1->breaklist);	//REMOVE, break is not possible in this project
+        //stlist0->breaklist.merge(stmt1->breaklist);	//TODO, remove break is not possible in this project
+        //stlist0->breaklist.merge(stlist1->breaklist);	//TODO, remove break is not possible in this project
 	}
-#line 1766 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1768 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 336 "parser.ypp" /* yacc.c:1646  */
+#line 338 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new StmtSymbol();
 	}
-#line 1774 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1776 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 341 "parser.ypp" /* yacc.c:1646  */
+#line 343 "parser.ypp" /* yacc.c:1646  */
     { 		//---------------------------------------------rule below finished-------------------------------------------------
 		//1.casting
 		(yyval) = new StmtSymbol();
@@ -1783,7 +1785,7 @@ yyreduce:
 		for(string id : dcl1->dcl_list){
 			//check if variable is already declared in this scope
 			if(var_table.find_var_in_block(id)){
-				string err = string("STMTrule 6: redeclaration of ") + id;
+				string err = string("rule 6: redeclaration of '") + id + "'";
 				semantic_err(err);
 			}
 			var_table.block_tables.front().insert_variable(id, dcl1->id_type);	//add this variable to the inner-most block
@@ -1792,27 +1794,27 @@ yyreduce:
 		string three_add_code = string("ADD2I") + " " + SP + " " + SP + " " + to_string(dcl1->dcl_list.size() * 4);	//add variables to stack
 		code_buffer.emit(three_add_code);
 	}
-#line 1796 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1798 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 358 "parser.ypp" /* yacc.c:1646  */
-    { 
+#line 360 "parser.ypp" /* yacc.c:1646  */
+    { 		//TODO weird there's no assignment from exp to stmt
 		(yyval) = new StmtSymbol();
 	}
-#line 1804 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1806 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 361 "parser.ypp" /* yacc.c:1646  */
-    { 
+#line 363 "parser.ypp" /* yacc.c:1646  */
+    {		//TODO weird there's no assignment from exp to stmt
 		(yyval) = new StmtSymbol();
 	}
-#line 1812 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1814 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 364 "parser.ypp" /* yacc.c:1646  */
+#line 366 "parser.ypp" /* yacc.c:1646  */
     { 
 		//1.casting
 		(yyval) = new StmtSymbol();
@@ -1820,37 +1822,37 @@ yyreduce:
 		StmtSymbol* cntrl1 = dynamic_cast<StmtSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
 		//2.control flow
 		stmt0->nextlist = cntrl1->nextlist;
-		//stmt0->breaklist = cntrl1->breaklist;	//REMOVE, break is not possible in this project
+		//stmt0->breaklist = cntrl1->breaklist;	//TODO, remove this line. break is not possible in this project
 	}
-#line 1826 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1828 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 373 "parser.ypp" /* yacc.c:1646  */
+#line 375 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new StmtSymbol();
 	}
-#line 1834 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1836 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 376 "parser.ypp" /* yacc.c:1646  */
+#line 378 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new StmtSymbol();
 	}
-#line 1842 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1844 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 379 "parser.ypp" /* yacc.c:1646  */
+#line 381 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new StmtSymbol();
 	}
-#line 1850 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1852 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 382 "parser.ypp" /* yacc.c:1646  */
+#line 384 "parser.ypp" /* yacc.c:1646  */
     {
 		//1.casting
 		(yyval) = new StmtSymbol();
@@ -1858,13 +1860,13 @@ yyreduce:
 		StmtSymbol* blk1 = dynamic_cast<StmtSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
 		//2.control flow
 		stmt0->nextlist = blk1->nextlist;
-		//stmt0->breaklist = blk1->breaklist;	//REMOVE, break is not possible in this project
+		//stmt0->breaklist = blk1->breaklist;	//TODO, remove this line. break is not possible in this project
 	}
-#line 1864 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1866 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 393 "parser.ypp" /* yacc.c:1646  */
+#line 395 "parser.ypp" /* yacc.c:1646  */
     {		//---------------------------------------------rule below finished-----------------------------------------
 		//1.casting
 		(yyval) = new Node();
@@ -1890,11 +1892,11 @@ yyreduce:
 		string ret =  "RETRN";
 		code_buffer.emit(ret);
 	}
-#line 1894 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1896 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 418 "parser.ypp" /* yacc.c:1646  */
+#line 420 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new Node();
 		if(func_table.curr_func_entry->ret_type != void_t){
@@ -1903,11 +1905,11 @@ yyreduce:
         string ret =  "RETRN";
 		code_buffer.emit(ret);
 	}
-#line 1907 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1909 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 428 "parser.ypp" /* yacc.c:1646  */
+#line 430 "parser.ypp" /* yacc.c:1646  */
     { //---------------------------------------------rule below finished-----------------------------------------
 		//1.casting
 		(yyval) = new Node();
@@ -1927,11 +1929,11 @@ yyreduce:
 		}
 
 	}
-#line 1931 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1933 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 447 "parser.ypp" /* yacc.c:1646  */
+#line 449 "parser.ypp" /* yacc.c:1646  */
     { 
 		//1.casting
 		(yyval) = new Node();
@@ -1965,11 +1967,11 @@ yyreduce:
             }
 		}
 	}
-#line 1969 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1971 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 46:
-#line 482 "parser.ypp" /* yacc.c:1646  */
+#line 484 "parser.ypp" /* yacc.c:1646  */
     { 	//---------------------------------------------rule below finished-----------------------------------------
 		(yyval) = new Node();
 		Node* read0 = dynamic_cast<Node*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -1991,17 +1993,17 @@ yyreduce:
 		
 
 	}
-#line 1995 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1997 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 505 "parser.ypp" /* yacc.c:1646  */
+#line 507 "parser.ypp" /* yacc.c:1646  */
     {	//---------------------------------------------rule below finished-----------------------------------------
 		(yyval) = new StmtSymbol();
 		StmtSymbol* assn0 = dynamic_cast<StmtSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
 		ExpSymbol* lval1 = dynamic_cast<ExpSymbol*>((yyvsp[-3]));	//don't know if necessary, maybe work dircetly through $$,S1,...
 		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		cout << lval1->place << exp1->place << endl;
 		if(lval1->exp_type != exp1->exp_type){	
 			semantic_err("rule 1: assignment between different types is not allowed");
 		}
@@ -2017,11 +2019,11 @@ yyreduce:
 		code_buffer.emit(three_add_code);
 
 	}
-#line 2021 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2023 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 528 "parser.ypp" /* yacc.c:1646  */
+#line 530 "parser.ypp" /* yacc.c:1646  */
     {     		//---------------------------------------------rule below finished-------------------------------------------------
 		(yyval) = new ExpSymbol();
 		ExpSymbol* lval0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -2049,11 +2051,11 @@ yyreduce:
                     lval0->place = float_reg;
         }
 	}
-#line 2053 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2055 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 49:
-#line 557 "parser.ypp" /* yacc.c:1646  */
+#line 559 "parser.ypp" /* yacc.c:1646  */
     {     //--------------------------------------rule below finished--------------------------------
 		(yyval) = new StmtSymbol();
 		StmtSymbol* cntrl0 = dynamic_cast<StmtSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -2069,15 +2071,15 @@ yyreduce:
         cntrl0->nextlist.merge(N1->nextlist);
         cntrl0->nextlist.merge(stmt1->nextlist);
         cntrl0->nextlist.merge(stmt2->nextlist);
-        //cntrl0->breaklist.merge(stmt1->breaklist);	//REMOVE, break is not possible in this project
-        //cntrl0->breaklist.merge(stmt2->breaklist);	//REMOVE, break is not possible in this project
+        //cntrl0->breaklist.merge(stmt1->breaklist);	//TODO, remove this line. break is not possible in this project
+        //cntrl0->breaklist.merge(stmt2->breaklist);	//TODO, remove this line. break is not possible in this project
 
 	}
-#line 2077 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2079 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 576 "parser.ypp" /* yacc.c:1646  */
+#line 578 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new StmtSymbol();
 		StmtSymbol* cntrl0 = dynamic_cast<StmtSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -2088,14 +2090,14 @@ yyreduce:
 		code_buffer.backpatch(bexp1->truelist, M1->quad);
 		cntrl0->nextlist.merge(bexp1->falselist);
 		cntrl0->nextlist.merge(stmt1->nextlist);
-		//cntrl0->breaklist.merge(stmt1->breaklist);	//REMOVE, break is not possible in this project
+		//cntrl0->breaklist.merge(stmt1->breaklist);	//TODO, remove this line. break is not possible in this project
 
 	}
-#line 2095 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2097 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 589 "parser.ypp" /* yacc.c:1646  */
+#line 591 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new StmtSymbol();
 		StmtSymbol* cntrl0 = dynamic_cast<StmtSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -2107,15 +2109,15 @@ yyreduce:
 		code_buffer.backpatch(bexp1->truelist, M2->quad);
 		code_buffer.backpatch(stmt1->nextlist, M1->quad);
 		cntrl0->nextlist.merge(bexp1->falselist);
-		//cntrl0->nextlist.merge(stmt1->breaklist);	//REMOVE, break is not possible in this project
+		//cntrl0->nextlist.merge(stmt1->breaklist);	//TODO, remove this line. break is not possible in this project
 		string three_add_code = string("UJUMP") + " " + to_string(M1->quad);
 		code_buffer.emit(three_add_code);
 	}
-#line 2115 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2117 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 606 "parser.ypp" /* yacc.c:1646  */
+#line 608 "parser.ypp" /* yacc.c:1646  */
     {    		//---------------------------------------------rule below finished-----------------------------------------
 		(yyval) = new BexpSymbol();
 		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,... 
@@ -2128,11 +2130,11 @@ yyreduce:
         bexp0->truelist.merge(bexp2->truelist);
         bexp0->falselist.merge(bexp2->falselist);
 	}
-#line 2132 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2134 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 618 "parser.ypp" /* yacc.c:1646  */
+#line 620 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new BexpSymbol();
 		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,... 
@@ -2145,11 +2147,11 @@ yyreduce:
 		bexp0->falselist.merge(bexp1->falselist);
 		bexp0->falselist.merge(bexp2->falselist);
 	}
-#line 2149 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2151 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 630 "parser.ypp" /* yacc.c:1646  */
+#line 632 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new BexpSymbol();
 		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,... 
@@ -2159,11 +2161,11 @@ yyreduce:
 		bexp0->truelist.merge(bexp1->falselist);
 		bexp0->falselist.merge(bexp1->truelist);
 	}
-#line 2163 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2165 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 639 "parser.ypp" /* yacc.c:1646  */
+#line 641 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new BexpSymbol();
 		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...  
@@ -2187,7 +2189,7 @@ yyreduce:
 		}
 		//if else on all relop operators
 		if(relop2->terminal_value == "=="){
-		//case "==":
+		//case "==":	TODO remove this line
 			if(exp1->exp_type == float_){
 				string float_reg = var_table.block_tables.front().next_temp_reg(float_);
 				three_add_code = string("SEQUF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
@@ -2203,10 +2205,10 @@ yyreduce:
 			bexp0->truelist.push_back(code_buffer.nextquad());
             three_add_code = string("BNEQZ") + " " + result_reg;	//expressions equal --> res=1 , why the emit is here???????
 			code_buffer.emit(three_add_code); 
-            //break;
+            //break;	TODO remove this line
 		}
 		else if(relop2->terminal_value == "<>"){
-		//case "<>":
+		//case "<>":	TODO remove this line
 			if(exp1->exp_type == float_){
 				string float_reg = var_table.block_tables.front().next_temp_reg(float_);
 				three_add_code = string("SNEQF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
@@ -2222,10 +2224,10 @@ yyreduce:
 			bexp0->truelist.push_back(code_buffer.nextquad());
             three_add_code = string("BNEQZ") + " " + result_reg;	// why the emit is here????????????????????????????????????
 			code_buffer.emit(three_add_code); 
-            //break;
+            //break;	TODO remove this line
 		}
 		else if(relop2->terminal_value == "<"){
-		//case "<":
+		//case "<":		TODO remove this line
 			if(exp1->exp_type == float_){
 				string float_reg = var_table.block_tables.front().next_temp_reg(float_);
 				three_add_code = string("SLETF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
@@ -2241,10 +2243,10 @@ yyreduce:
 			bexp0->truelist.push_back(code_buffer.nextquad());
             three_add_code = string("BNEQZ") + " " + result_reg;	// why the emit is here????????????????????????????????????
 			code_buffer.emit(three_add_code); 
-            //break;
+            //break;	TODO remove this line
 		}
 		else if(relop2->terminal_value == "<="){
-		//case "<=":
+		//case "<=":	TODO remove this line
 			if(exp1->exp_type == float_){
 				string float_reg = var_table.block_tables.front().next_temp_reg(float_);
 				three_add_code = string("SGRTF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
@@ -2260,10 +2262,10 @@ yyreduce:
 			bexp0->truelist.push_back(code_buffer.nextquad());
             three_add_code = string("BREQZ") + " " + result_reg;	//exp1 <= exp2 --> res=0 , why the emit is here????????????
 			code_buffer.emit(three_add_code); 
-            //break;
+            //break;	TODO remove this line
 		}
 		else if(relop2->terminal_value == ">"){
-		//case ">":
+		//case ">":		TODO remove this line
 			if(exp1->exp_type == float_){
 				string float_reg = var_table.block_tables.front().next_temp_reg(float_);
 				three_add_code = string("SGRTF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
@@ -2279,10 +2281,10 @@ yyreduce:
 			bexp0->truelist.push_back(code_buffer.nextquad());
             three_add_code = string("BNEQZ") + " " + result_reg;	// why the emit is here????????????????????????????????????
 			code_buffer.emit(three_add_code); 
-            //break;
+            //break;	TODO remove this line
 		}
 		else if(relop2->terminal_value == ">="){
-		//case ">=":
+		//case ">=":	TODO remove this line
 			if(exp1->exp_type == float_){
 				string float_reg = var_table.block_tables.front().next_temp_reg(float_);
 				three_add_code = string("SLETF") + " " + float_reg + " " + exp1->place + " " + exp2->place;
@@ -2298,24 +2300,24 @@ yyreduce:
 			bexp0->truelist.push_back(code_buffer.nextquad());
             three_add_code = string("BREQZ") + " " + result_reg;	//exp1 <= exp2 --> res=0 , why the emit is here????????????
 			code_buffer.emit(three_add_code); 
-            //break;
+            //break;	TODO remove this line
 		}
 		else{
-		//default:
+		//default:		TODO remove this line
 			operational_err("the operator is not RELOP");
-			//break;
-		}	//switch closing braces
+			//break;	TODO remove this line
+		}	//end of if else
 
 		bexp0->falselist.push_back(code_buffer.nextquad());	//update parent falselist
 		string jump = "UJUMP";
 		code_buffer.emit(jump);
 
 	}
-#line 2315 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2317 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 786 "parser.ypp" /* yacc.c:1646  */
+#line 788 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new BexpSymbol();
 		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...        
@@ -2324,11 +2326,11 @@ yyreduce:
 		bexp0->truelist = bexp1->truelist;        
         bexp0->falselist = bexp1->falselist; 
 	}
-#line 2328 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2330 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 796 "parser.ypp" /* yacc.c:1646  */
+#line 798 "parser.ypp" /* yacc.c:1646  */
     {    		//---------------------------------------------rule below finished-----------------------------------------
 		(yyval) = new ExpSymbol();
 		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -2365,11 +2367,11 @@ yyreduce:
 		exp0->exp_type = exp1->exp_type;	//update parent symbol type
 
 	}
-#line 2369 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2371 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 58:
-#line 832 "parser.ypp" /* yacc.c:1646  */
+#line 834 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new ExpSymbol();
 		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -2407,11 +2409,11 @@ yyreduce:
 		exp0->exp_type = exp1->exp_type;	//update parent symbol type
 
 	}
-#line 2411 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2413 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 59:
-#line 869 "parser.ypp" /* yacc.c:1646  */
+#line 871 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new ExpSymbol();
 		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -2420,22 +2422,25 @@ yyreduce:
 		exp0->place = exp1->place;		//update parent symbol place
 		exp0->exp_type = exp1->exp_type;	//update parent symbol type
 	}
-#line 2424 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2426 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 60:
-#line 877 "parser.ypp" /* yacc.c:1646  */
+#line 879 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new ExpSymbol();
 		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
 		TypeSymbol* type1 = dynamic_cast<TypeSymbol*>((yyvsp[-2]));	//don't know if necessary, maybe work dircetly through $$,S1,...
 		ExpSymbol* exp2 = dynamic_cast<ExpSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
 		string three_add_code;
+		cout << "type to cast is " << type1->type_value << " b type is " << exp2->exp_type << endl;
 		if(type1->type_value == exp2->exp_type){	//sam type, no casting needed
 			exp0->place = exp2->place;		//update parent symbol place
 			exp0->exp_type = exp2->exp_type;	//update parent symbol type
+			cout << "if" << endl;
 		}
 		else{
+			cout << "else" << endl;
 			if(type1->type_value == void_t || exp2->exp_type == void_t){
 				semantic_err("casting from/to type void is not allowed");
 			}
@@ -2453,11 +2458,11 @@ yyreduce:
 		}
 
 	}
-#line 2457 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2462 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 61:
-#line 905 "parser.ypp" /* yacc.c:1646  */
+#line 910 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new ExpSymbol();
 		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -2488,11 +2493,11 @@ yyreduce:
 		exp0->exp_type = var_entry.type;	//update parent symbol type
 
 	}
-#line 2492 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2497 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 62:
-#line 935 "parser.ypp" /* yacc.c:1646  */
+#line 940 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new ExpSymbol();
 		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -2501,11 +2506,11 @@ yyreduce:
 		exp0->place = num1->place;		//update parent symbol place
 		exp0->exp_type = num1->exp_type;	//update parent symbol type
 	}
-#line 2505 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2510 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 63:
-#line 943 "parser.ypp" /* yacc.c:1646  */
+#line 948 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new ExpSymbol();
 		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -2514,11 +2519,11 @@ yyreduce:
 		exp0->place = call1->place;		//update parent symbol place
 		exp0->exp_type = call1->exp_type;	//update parent symbol type
 	}
-#line 2518 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2523 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 64:
-#line 953 "parser.ypp" /* yacc.c:1646  */
+#line 958 "parser.ypp" /* yacc.c:1646  */
     {   		//---------------------------------------------rule below finished---------------------------------------------
 		(yyval) = new ExpSymbol();
 		ExpSymbol* num0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -2529,11 +2534,11 @@ yyreduce:
 		string three_add_code = string("COPYI") + " " + num0->place + " " + int1->terminal_value;
 		code_buffer.emit(three_add_code);
 	}
-#line 2533 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2538 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 65:
-#line 963 "parser.ypp" /* yacc.c:1646  */
+#line 968 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new ExpSymbol();
 		ExpSymbol* num0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -2544,11 +2549,11 @@ yyreduce:
 		string three_add_code = string("COPYF") + " " + num0->place + " " + real1->terminal_value;
 		code_buffer.emit(three_add_code);
 	}
-#line 2548 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2553 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 66:
-#line 975 "parser.ypp" /* yacc.c:1646  */
+#line 980 "parser.ypp" /* yacc.c:1646  */
     {  		//---------------------------------------------rule below finished-------------------------------------
 		(yyval) = new ExpSymbol();
 		ExpSymbol* call0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -2577,15 +2582,15 @@ yyreduce:
 		three_add_code = string("ADD2I") + " " + FP + " " + SP + " " + "8";	//updating frame pointer (need clearer explanation)
 		code_buffer.emit(three_add_code);
 
-		//Cast FP to FP_F - DON'T KNOW WHY!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!!
+		//Cast FP to FP_F - DON'T KNOW WHY TODO remove this line
         three_add_code = string("CITOF") + " " + FP_F + " " + FP;
 		code_buffer.emit(three_add_code);
-		//?????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????????
+		//TODO remove this line
 
 		/***** pre-call - store arguments, update dp and sp *****/
 		
 		//store arguments in stack before call
-		int i = 1;	//
+		int i = 1;	
         auto func_arg_it = func_entry->func_args.begin();
         auto exp_arg_it = call_args1->exp_args.begin();
 
@@ -2649,11 +2654,11 @@ yyreduce:
         
 
 	}
-#line 2653 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2658 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 67:
-#line 1077 "parser.ypp" /* yacc.c:1646  */
+#line 1082 "parser.ypp" /* yacc.c:1646  */
     { 		//---------------------------------------------rule below finished-----------------------------------------
 		(yyval) = new CallArgsSymbol();
 		CallArgsSymbol* call_arg0 = dynamic_cast<CallArgsSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -2661,19 +2666,19 @@ yyreduce:
 
 		call_arg0->exp_args = call_arglist1->exp_args;	//parent symbol gets son symbol expressions
 	}
-#line 2665 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2670 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 68:
-#line 1084 "parser.ypp" /* yacc.c:1646  */
+#line 1089 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new CallArgsSymbol();
 	}
-#line 2673 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2678 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 69:
-#line 1089 "parser.ypp" /* yacc.c:1646  */
+#line 1094 "parser.ypp" /* yacc.c:1646  */
     { 		//---------------------------------------------rule below finished-----------------------------
 		(yyval) = new CallArgsSymbol();
 		CallArgsSymbol* call_arglist0 = dynamic_cast<CallArgsSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -2687,11 +2692,11 @@ yyreduce:
 		call_arglist0->exp_args.push_back(*exp);			//adding exp to parent expression vector
 
 	}
-#line 2691 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2696 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 70:
-#line 1102 "parser.ypp" /* yacc.c:1646  */
+#line 1107 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new CallArgsSymbol();
 		CallArgsSymbol* call_arglist0 = dynamic_cast<CallArgsSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
@@ -2702,21 +2707,21 @@ yyreduce:
 		}
 		call_arglist0->exp_args.push_back(*exp);			//adding exp to parent expression vector
 	}
-#line 2706 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2711 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 71:
-#line 1114 "parser.ypp" /* yacc.c:1646  */
+#line 1119 "parser.ypp" /* yacc.c:1646  */
     {		//---------------------------------------------rule below finished-------------------------------------------------
 		Marker_M_Symbol* M = new Marker_M_Symbol();
 		M->quad = code_buffer.nextquad();
 		(yyval) = M;
 	}
-#line 2716 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2721 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 72:
-#line 1121 "parser.ypp" /* yacc.c:1646  */
+#line 1126 "parser.ypp" /* yacc.c:1646  */
     {		//---------------------------------------------rule below finished-------------------------------------------------
 		Marker_N_Symbol* N = new Marker_N_Symbol();
 		N->nextlist.push_back(code_buffer.nextquad());
@@ -2724,11 +2729,11 @@ yyreduce:
 		code_buffer.emit(jump);
 		(yyval) = N;
 	}
-#line 2728 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2733 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
 
-#line 2732 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2737 "parser.tab.cpp" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2956,7 +2961,7 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 1130 "parser.ypp" /* yacc.c:1906  */
+#line 1135 "parser.ypp" /* yacc.c:1906  */
 
 
 /* Bison Epilogue */

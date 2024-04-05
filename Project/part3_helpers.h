@@ -1,5 +1,5 @@
-/* 046266 Compilation Methods, EE Faculty, Technion                        */
-/* part3_helpers.h - Helper functions for project part 2 - API definitions */
+/* 046266 Compilation Methods, EE Faculty, Technion                 */
+/* part3_helpers.h - Helper functions for project - API definitions */
 
 #ifndef _PART3_HELPERS_H_
 #define _PART3_HELPERS_H_
@@ -15,12 +15,9 @@
 using namespace std;
 
 void operational_err(string err);
-bool replace(string& str, const string& src, const string& dst);
+bool replace(string& str, const string& src, const string& dst);    //TODO change func name
 
 #define YYSTYPE Node* // changed yylval type to Node*
-//#ifdef __cplusplus
-//extern "C" {
-//#endif
 
 //Defining our primitive types
 typedef enum {
@@ -30,16 +27,15 @@ typedef enum {
 	} Type;
 
 // Defining arguments format
-/*typedef */struct Arg_dcl {
+struct Arg_dcl {
     string id;
     Type type;
-} /*Arg_dcl_data*/;
+} ;
 
 #define INT_REG_START 5
 #define FLOAT_REG_START 4
 
-// Registers macro
-
+// Registers macro  TODO comments on saved registers
 
 //return address pointer
 #define RA "I0"
@@ -81,8 +77,8 @@ class Terminal : public Node{
 public:
     string terminal_type;
     string terminal_value;
-    Terminal(string type);
-    Terminal(string type, string terminal_val);
+    Terminal(string type);      //implemented in cpp file
+    Terminal(string type, string terminal_val);     //implemented in cpp file
 };
 
 // A class for a expression symbol in parse tree
@@ -102,7 +98,7 @@ public:
 class StmtSymbol : public Node{
 public:
     list<int> nextlist;
-    //vector<int> breaklist;	//REMOVE, break is not possible in this project
+    //vector<int> breaklist;	//TODO remove this line. break is not possible in this project
 };
 
 // A class for a boolean expression symbol in parse tree
@@ -125,8 +121,6 @@ public:
     Type ret_type;
     string func_id;
     list<Arg_dcl> func_args;
-    //bool is_optional;
-    //vector
 };
 
 // A class for a call function expression symbol in parse tree
@@ -171,7 +165,7 @@ public:
     string type_rep;
     map<string, int> vars_in_block;
 
-    Table_per_type_block_scope(Type block_table_type);  //constructor
+    Table_per_type_block_scope(Type block_table_type);  //constructor, gets type of table (int/float)
     string get_next_temp();
     void insert_var_to_map(string id, int offset);
     bool find_in_type_block_scope(Var_Table_Entry& var, string id);
@@ -202,12 +196,12 @@ public:
     list<Table_block_scope> block_tables;
     list<Arg_dcl> func_args;
 
-    void add_block_table();
-    void remove_block_table();
+    void add_block_table();     //add block at beginning of list block_tables
+    void remove_block_table();      //remove inner-most block (first block)
     bool is_var_exist(Var_Table_Entry& var, string id); //search for var in the tables
-    void store();
-    void load();
-    bool find_var_in_block(string id);
+    void store();   //uses store_reg of middle class Table_block_scope
+    void load();    //uses load_reg of middle class Table_block_scope
+    bool find_var_in_block(string id);  //searches variable 'id' in the first block
 };
 
 /**************************************************************************/
@@ -217,16 +211,16 @@ public:
 
 class Function_Table_Entry {
 public:
-    int def_line;
+    int def_line;   //where the function is defined, at beginning initializes to -1
     Type ret_type;
     string func_id;
     list<Arg_dcl> func_args;
-    list<int> callers_list;
+    list<int> callers_list; 
 
     Function_Table_Entry(Type& ret_type, string& func_id, list<Arg_dcl>& func_args);    // constructor
     string get_func_def_place(int caller_line);
-    void define_and_backpatch(int func_def_line);
-    bool is_matching(Type& other_ret_type, string& other_func_id, list<Arg_dcl>& other_func_args);
+    void define_and_backpatch(int func_def_line);   //update func def_line and backpatch it to caller list 
+    bool is_matching(Type& other_ret_type, string& other_func_id, list<Arg_dcl>& other_func_args);  //is func matches one of the gived funcs
 
 };
 
@@ -237,8 +231,8 @@ public:
 
     Function_Table_Entry* find_func_entry(string id);
     Function_Table_Entry* insert_func_entry(Type& ret_type, string& func_id, list<Arg_dcl>& func_args);
-    string getUnimplementedCalls();
-    string getImplemented();
+    string unimplemented_funcs();
+    string implemented_funcs();
 
 };
 
@@ -251,39 +245,14 @@ public:
 
 
 class Vec_buf {
-
-    // this function is used to concatenate strings to one another with whitespace in between
-    //template<typename T>
-    //string concatenate_str(T t) {   //this is the base case for the recursion
-    //    return string(t);
-    //}
-
-    //template<typename T, typename... More_args>
-    //string concatenate_str(T t, More_args... more_args) {
-    //    return string(t) + " " + concatenate_str(more_args...);     //recursive concat of input
-    //}
-
 public:
     vector<string> buffer;
-    Vec_buf();
+    Vec_buf(){};
     int nextquad();
     void backpatch(list<int> commitment_list, int line_number);
     void print_code(ofstream& output_file);
-    //emit uses template therefore must be implemented here
-    //template<typename... Args_to_emit>
-    //int emit(Args_to_emit... args_to_emit){
-    //    string threeaddcode = concatenate_str(args_to_emit...);  
-    //    buffer.push_back(threeaddcode);
-    //    return buffer.size();   //returns the next free line
-    //}
-    void emit(string& command);   //sorry nadav it's too complicated to use the above emit
+    void emit(string& command);
 };
 
-
-
-
-//#ifdef __cplusplus
-//} // extern "C"
-//#endif
 
 #endif //_PART3_HELPERS_H_

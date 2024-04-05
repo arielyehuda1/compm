@@ -1,17 +1,20 @@
+#int sum(a:float,b:int){
+#    return (int)a + b;
+#}
 
-void main()
-{
-    a:int;
-    n:int;
+int sum(e,c:int){
+	   
+	return 3 * e;
+}
 
-    read(a);
-    n = 0;
-    while(a <> 0) do {
-      a = a/10;
-      n = n+1;
-    }
 
-    write("\"a\" has ");
-    write(n);
-    write(" digits\n");
+void main(){
+    a: int;
+    b : float;
+    intSum:int;
+    a=4;
+    b=5;
+    write(a);
+    intSum = sum(a,a);
+    write(intSum);
 }
