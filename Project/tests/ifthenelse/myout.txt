@@ -1,0 +1,4 @@
+Input integer?:This is "B":
+3.000000 
+I am a little special
+Reached Halt.

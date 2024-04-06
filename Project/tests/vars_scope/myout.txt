@@ -1,0 +1,9 @@
+read outer a
+Input integer?:read b
+Input integer?:read inner a
+Input integer?:write b from inner scope: 2 
+read b from inner scope
+Input integer?:inner a: 3 
+outer a: 1 
+b: 4 
+Reached Halt.

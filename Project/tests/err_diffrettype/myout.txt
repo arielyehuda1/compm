@@ -1,0 +1,1 @@
+Semantic error: redeclaration of function 'foo' in line number 8

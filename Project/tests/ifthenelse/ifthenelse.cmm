@@ -1,0 +1,23 @@
+# This is an example
+
+void main()
+{
+	a : int;
+	B: float;
+	read(a);
+	B =(float)a - 3.0;
+	write("This is \"B\":\n");
+	write(B);
+	write("\n");
+
+	c : int;
+	c = 2;
+	B = 6.0;
+	if(c < a) then 
+		if((int)B < a) then
+			write("I am special\n");
+		else
+			write("I am a little special\n");
+	else
+       write("I am not special\n");
+}

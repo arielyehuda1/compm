@@ -1,46 +1,138 @@
+#!/usr/bin/env python3
+import re
 import os
 
 # Define the directories
-testsuit_dir = "testsuit"
+tests_dir = "tests"
 rx_cc_executable = "./rx-cc"
 rx_linker_executable = "./rx-linker"
 rx_vm_executable = "./rx-vm"
 
+
 # Function to run commands
 def run_command(command):
-    print("Running command: {}".format(command))
+    #print("Running command: {}".format(command))
     os.system(command)
 
 # Function to run tests
 def run_tests():
-    # Traverse through directories in testsuit
-    for root, dirs, files in os.walk(testsuit_dir):
+    # Traverse through directories in tests
+    passed_cnt = 0;
+    for root, dirs, files in os.walk(tests_dir):
         for dir_name in dirs:
-            cmm_file = os.path.join(root, dir_name, dir_name + ".cmm")
+            cmm_files = []
+            for file in os.listdir(os.path.join(root, dir_name)):
+                if file.endswith(".cmm"):
+                    cmm_files.append(os.path.join(root, dir_name, file))
+            
+            if len(cmm_files) == 0:
+                print("No .cmm files found in {}".format(os.path.join(root, dir_name)))
+                continue
+            elif len(cmm_files) == 1:
+                cmm_file = cmm_files[0]
+                aux_cmm_file = None
+            elif len(cmm_files) == 2:
+                cmm_file = cmm_files[0]
+                aux_cmm_file = cmm_files[1]
+            else:
+                print("More than 2 .cmm files found in {}. Skipping test.".format(os.path.join(root, dir_name)))
+                continue
+            
             rsk_file = os.path.join(root, dir_name, dir_name + ".rsk")
             out_file = os.path.join(root, dir_name, "myout.txt")
             expected_out_file = os.path.join(root, dir_name, "a.exp")
             input_file = os.path.join(root, dir_name, "a.input")
             
-            # Run rx-cc
-            rx_cc_command = "{} {}".format(rx_cc_executable, cmm_file)
-            run_command(rx_cc_command)
             
-            # Run rx-linker
-            rx_linker_command = "{} {}".format(rx_linker_executable, rsk_file)
-            run_command(rx_linker_command)
             
-            # Run rx-vm with input file
-            rx_vm_command = "{} out.e < {} > {}".format(rx_vm_executable, input_file, out_file)
-            run_command(rx_vm_command)
+            
             
             # Diff check
-            diff_command = "diff {} {}".format(out_file, expected_out_file)
-            diff_result = os.system(diff_command)
-            if diff_result == 0:
-                print("Test {}: PASSED".format(dir_name))
+            if dir_name.startswith("err"):
+                # Run rx-cc
+                rx_cc_command = "{} {} > {}".format(rx_cc_executable, cmm_file, out_file)
+                run_command(rx_cc_command)
+                
+                # Read the first line of the output file
+                with open(out_file, 'r') as f:
+                    lines = f.readlines()
+                    if len(lines) != 1:
+                        print("Test {}: FAILED not one line".format(dir_name))
+                    else:
+                        line_out = lines[0].strip()
+                        
+
+                # Read the first line of the expected output file
+                with open(expected_out_file, 'r') as f:
+                    line_expected = f.readline().strip()
+                
+                pattern = r"\d+$"
+                out1 = re.search(pattern, line_out)
+                expected1 = re.search(pattern, line_expected)
+                
+                num1 = -3
+                num2 = -4
+                if out1:
+                    num1 = out1.group()
+                else:
+                    print("Test {}: FAILED outfile not end with num".format(dir_name))
+                    continue
+                if expected1:
+                    num2 = expected1.group()
+                else:
+                    print("Test {}: FAILED expfile not end with num".format(dir_name))
+                    continue
+                    
+                
+                
+                if num1 == num2:    
+                    line_out = re.sub(pattern, "", line_out)
+                else:
+                    print("Test {}: FAILED different line numbers".format(dir_name))
+                    continue
+                
+                # Check if the first line starts with "Semantic error:" and ends with "in line number "
+                if line_out.startswith("Semantic error:") and line_out.endswith("in line number "):
+                    passed_cnt += 1
+                else:
+                    print("Test {}: FAILED".format(dir_name))
+                
+                
             else:
-                print("Test {}: FAILED".format(dir_name))
+                #non err file
+                
+                # Run rx-cc
+                rx_cc_command = "{} {}".format(rx_cc_executable, cmm_file)
+                run_command(rx_cc_command)
+                
+                if aux_cmm_file:
+                  aux_rx_cc_command = "{} {}".format(rx_cc_executable, aux_cmm_file)
+                  run_command(aux_rx_cc_command)
+            
+                # Run rx-linker
+                if aux_cmm_file:
+                    rx_linker_command = "{} {} {}".format(rx_linker_executable, rsk_file, rsk_file[:-4] + "_aux.rsk")
+                else:
+                    rx_linker_command = "{} {}".format(rx_linker_executable, rsk_file)
+                run_command(rx_linker_command)
+                
+                # Run rx-vm with input file
+                rx_vm_command = "{} out.e < {} > {}".format(rx_vm_executable, input_file, out_file)
+                run_command(rx_vm_command)
+                
+                diff_command = "diff {} {}".format(out_file, expected_out_file)
+                diff_result = os.system(diff_command)
+                
+                if diff_result == 0:
+                    passed_cnt += 1
+                else:
+                    print("Test {}: FAILED".format(dir_name))
+                
+                
+    num_dir = sum(1 for _ in os.walk(tests_dir)) - 1  # Subtract 1 for the root directory itself
+    print("PASSED {}/{} Tests".format(passed_cnt, num_dir))
+
+
 
 if __name__ == "__main__":
     run_tests()

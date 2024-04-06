@@ -1,0 +1,35 @@
+int foo(a:int){
+	return a;
+}
+
+void main(){
+	a : int;
+	read(a);
+	b:int;
+	read(b);
+	c:float;
+	read(c);
+	d:float;
+	read(d);
+
+	sum,diff,prod,div:int;
+	sumf,difff,prodf,divf:float;
+	sum = a+b;
+	diff = a-b;
+	prod = a*b;
+	div = a/b;
+	sumf = c+d;
+	difff = c-d;
+	prodf = c*d;
+	divf = c/d;
+
+	write(sum);
+	write(diff);
+	write(prod);
+	write(div);
+	write("\n");
+	write(sumf);
+	write(difff);
+	write(prodf);
+	write(divf);
+}

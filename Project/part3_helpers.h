@@ -39,25 +39,25 @@ struct Arg_dcl {
 
 //return address pointer
 #define RA "I0"
-//frame start pointer
-#define FP "I1"
 //stack pointer (next write pointer in stack)
-#define SP "I2"
-//return int type
-#define RT_I "I3"
+#define SP "I1"
+//frame start pointer
+#define FP "I2"
 //declarations pointer (points on the first variable in the frame)
-#define DP "I4"
+#define DP "I3"
+//return int type
+#define RT_I "I4"
 /**
  * SAVED FLOAT REGS
  */
-//frame address pointer
-#define FP_F "F0"
 //stack pointer (next write pointer in stack)
-#define SP_F "F1"
-//return float type
-#define RT_F "F2"
+#define SP_F "F0"
+//frame address pointer
+#define FP_F "F1"
 //declarations pointer (points on the first variable in the frame)
-#define DP_F "F3"
+#define DP_F "F2"
+//return float type
+#define RT_F "F3"
 
 
 /**************************************************************************/
@@ -210,7 +210,7 @@ public:
 
 class Function_Table_Entry {
 public:
-    int def_line;   //where the function is defined, at beginning initializes to -1
+    int def_line;   //where the function is defined, at beginning initialized to -1
     Type ret_type;
     string func_id;
     list<Arg_dcl> func_args;
@@ -219,7 +219,7 @@ public:
     Function_Table_Entry(Type& ret_type, string& func_id, list<Arg_dcl>& func_args);    // constructor
     string get_func_def_place(int caller_line);
     void define_and_backpatch(int func_def_line);   //update func def_line and backpatch it to caller list 
-    bool is_matching(Type& other_ret_type, string& other_func_id, list<Arg_dcl>& other_func_args);  //is func matches one of the gived funcs
+    bool is_matching(Type& other_ret_type, string& other_func_id, list<Arg_dcl>& other_func_args);  //is func matches one of the given funcs
 
 };
 

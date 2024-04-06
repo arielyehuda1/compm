@@ -1,0 +1,74 @@
+#int sum(a:float,b:int){
+#    return (int)a + b;
+#}
+
+int int_sum(a,b:int){
+	c:int;
+    c=a+b;
+    write("inside func int:\n");
+    write("a is: ");
+    write(a);
+    write("\n");
+    write("b is: ");
+    write(b);
+    write("\n");
+    write("sum arg is: ");
+	write(c); 
+    write("\n");
+	return a + b;
+}
+
+float float_sum(a,b:float){
+	c:float;
+    c=a+b;
+    write("inside func float:\n");
+    write("a is: ");
+    write(a);
+    write("\n");
+    write("b is: ");
+    write(b);
+    write("\n");
+    write("sum arg is: ");
+	write(c); 
+    write("\n");
+	return a + b;
+}
+
+void main(){
+    a, res_int: int;
+    b , res_float : float;
+    read(a);
+    read(b);
+
+    intSum:int;
+    floatSum:float;
+
+    a_flo:float;
+    b_int:int;
+
+    a_flo = (float)a;
+    b_int = (int)b;
+
+    intSum = int_sum(a,b_int);
+    floatSum = float_sum(a_flo,b);
+    write("in main:\n");
+    write("sum int is: ");
+    write(intSum);
+    write("\n");
+    write("sum float is: ");
+    write(floatSum);
+    write("\n");
+
+    res_int = int_sum(a,b_int);
+    res_float = float_sum(a_flo,b);
+    write("in main:\n");
+    write("sum int is: ");
+    write(res_int);
+    write("\n");
+    write("sum float is: ");
+    write(res_float);
+    write("\n");
+
+    a = (int)(float)a;
+    b = (float)(int)b;
+}

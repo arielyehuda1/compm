@@ -1,0 +1,1 @@
+Semantic error: variable 'b' is not declared in line number 9

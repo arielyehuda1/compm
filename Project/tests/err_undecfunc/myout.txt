@@ -1,0 +1,1 @@
+Semantic error: function 'foo' is not declared in line number 2

@@ -1,0 +1,1 @@
+Semantic error: ADDOP operation between different types is not allowed in line number 4

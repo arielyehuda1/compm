@@ -1,0 +1,1 @@
+Semantic error: rule 3: definition of function 'foo' doesn't match it's declaration in line number 4

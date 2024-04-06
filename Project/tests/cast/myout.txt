@@ -1,0 +1,23 @@
+Input integer?:Input real?:inside func int:
+a is: 4 
+b is: 3 
+sum arg is: 7 
+inside func float:
+a is: 4.000000 
+b is: 3.200000 
+sum arg is: 7.200000 
+in main:
+sum int is: 7 
+sum float is: 7.200000 
+inside func int:
+a is: 4 
+b is: 3 
+sum arg is: 7 
+inside func float:
+a is: 4.000000 
+b is: 3.200000 
+sum arg is: 7.200000 
+in main:
+sum int is: 7 
+sum float is: 7.200000 
+Reached Halt.

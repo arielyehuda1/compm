@@ -1,0 +1,5 @@
+Input integer?:before foo() a=5 
+after foo() a=5 
+a+2 = 6 before foo() a=6 
+after foo() a=6 
+a+3 = 7 Reached Halt.
