@@ -72,8 +72,8 @@
 	extern int yylineno;
     extern const char* yytext;
 	
-	Node *root_node;		//root node 
-	Vec_buf code_buffer;
+	Node *root_node;		//root node of parse tree
+	Vec_buf code_buffer;	//buffer to store the riski commands
 	variable_table var_table;
 	Function_Table func_table;
 	
@@ -458,14 +458,14 @@ static const yytype_uint8 yytranslate[] =
   /* YYRLINE[YYN] -- Source line where rule number YYN was defined.  */
 static const yytype_uint16 yyrline[] =
 {
-       0,    41,    41,    46,    46,    80,    96,   101,   111,   123,
-     126,   131,   134,   139,   142,   147,   157,   170,   174,   180,
-     185,   191,   194,   203,   224,   238,   238,   259,   273,   297,
-     302,   307,   314,   325,   330,   347,   350,   353,   361,   364,
-     367,   370,   380,   405,   415,   434,   469,   492,   514,   543,
-     560,   572,   588,   600,   612,   621,   754,   764,   800,   837,
-     845,   873,   903,   911,   921,   931,   943,  1045,  1052,  1057,
-    1070,  1082,  1089
+       0,    41,    41,    46,    46,    79,    95,   100,   110,   122,
+     125,   130,   133,   138,   141,   146,   156,   169,   173,   179,
+     184,   190,   193,   198,   219,   233,   233,   254,   268,   292,
+     297,   302,   309,   320,   325,   342,   345,   348,   356,   359,
+     362,   365,   375,   400,   410,   430,   465,   489,   513,   543,
+     561,   574,   591,   604,   617,   627,   761,   772,   811,   850,
+     859,   889,   922,   931,   942,   954,   968,  1069,  1077,  1082,
+    1097,  1111,  1118
 };
 #endif
 
@@ -1347,7 +1347,7 @@ yyreduce:
         case 2:
 #line 41 "parser.ypp" /* yacc.c:1646  */
     { 		//---------------------------------------------rule below finished---------------------------------------------
-				root_node = new Node();		//maybe need to change to lower class (like symbol node)
+				root_node = new Node();		
 			}
 #line 1353 "parser.tab.cpp" /* yacc.c:1646  */
     break;
@@ -1355,9 +1355,8 @@ yyreduce:
   case 3:
 #line 46 "parser.ypp" /* yacc.c:1646  */
     {	//mid rule action@@@-------------------rule below finished---------------------------------------------
-				//REMOVE /*here is the place for dynamic casting to parent but i see no use*/
 				//1.casting
-				FuncApiSymbol* func_def_api1 = dynamic_cast<FuncApiSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+				FuncApiSymbol* func_def_api1 = dynamic_cast<FuncApiSymbol*>((yyvsp[0]));	
 				//2.check function
 				Function_Table_Entry* func_entry = func_table.find_func_entry(func_def_api1->func_id);
 				if(func_entry == NULL){		//not in symbol table - add it
@@ -1368,7 +1367,7 @@ yyreduce:
 						string err = string("rule 3: definition of function '") + func_def_api1->func_id + "' doesn't match it's declaration";
 						semantic_err(err);
 					}
-					if(func_entry->def_line != -1){	//function already defined, check this later!!!!!!!!
+					if(func_entry->def_line != -1){	//function already defined
 						string err = string("redefinition of function '") + func_def_api1->func_id + "'";
 						semantic_err(err);
 					}
@@ -1379,29 +1378,29 @@ yyreduce:
 				var_table.func_args = func_entry->func_args;
 				func_entry->define_and_backpatch(code_buffer.nextquad());
 			}
-#line 1383 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1382 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 4:
-#line 71 "parser.ypp" /* yacc.c:1646  */
+#line 70 "parser.ypp" /* yacc.c:1646  */
     { 
 				(yyval) = new Node();
-				StmtSymbol *blk1 = dynamic_cast<StmtSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+				StmtSymbol *blk1 = dynamic_cast<StmtSymbol*>((yyvsp[0]));	
 
 				code_buffer.backpatch(blk1->nextlist, code_buffer.nextquad());
 				string ret =  "RETRN";
 				code_buffer.emit(ret);	//rule 5: in case no explicit return, ensure returning to caller
 
 			}
-#line 1397 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1396 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 5:
-#line 80 "parser.ypp" /* yacc.c:1646  */
+#line 79 "parser.ypp" /* yacc.c:1646  */
     { 
 				//1.casting
 				(yyval) = new Node();
-				FuncApiSymbol* func_dec_api1 = dynamic_cast<FuncApiSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+				FuncApiSymbol* func_dec_api1 = dynamic_cast<FuncApiSymbol*>((yyvsp[0]));	
 				//2.check function
 				Function_Table_Entry* func_entry = func_table.find_func_entry(func_dec_api1->func_id);
 				if(func_entry == NULL){		//not in symbol table - add it
@@ -1414,190 +1413,190 @@ yyreduce:
 					}
 				}
 			}
-#line 1418 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1417 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 6:
-#line 96 "parser.ypp" /* yacc.c:1646  */
+#line 95 "parser.ypp" /* yacc.c:1646  */
     { 
 				(yyval) = new Node();
 			}
-#line 1426 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1425 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 7:
-#line 101 "parser.ypp" /* yacc.c:1646  */
+#line 100 "parser.ypp" /* yacc.c:1646  */
     { //---------------------------------------------rule below finished------------------------------------
 		//1.casting
 		(yyval) = new FuncApiSymbol();
 		FuncApiSymbol* func_dec_api0 = dynamic_cast<FuncApiSymbol*>((yyval));
-		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>((yyvsp[-4]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-        Terminal *id1 = dynamic_cast<Terminal*>((yyvsp[-3]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>((yyvsp[-4]));	
+        Terminal *id1 = dynamic_cast<Terminal*>((yyvsp[-3]));	
 		//2.assignments
 		func_dec_api0->ret_type = type1->type_value;
 		func_dec_api0->func_id = id1->terminal_value;
 	}
-#line 1441 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1440 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 8:
-#line 111 "parser.ypp" /* yacc.c:1646  */
+#line 110 "parser.ypp" /* yacc.c:1646  */
     { //---------------------------------------------rule below finished-------------------------------
 		//1.casting
 		(yyval) = new FuncApiSymbol();
-		FuncApiSymbol* func_dec_api0 = dynamic_cast<FuncApiSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>((yyvsp[-5]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-        Terminal *id1 = dynamic_cast<Terminal*>((yyvsp[-4]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>((yyvsp[-2]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		FuncApiSymbol* func_dec_api0 = dynamic_cast<FuncApiSymbol*>((yyval));	
+		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>((yyvsp[-5]));	
+        Terminal *id1 = dynamic_cast<Terminal*>((yyvsp[-4]));	
+		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>((yyvsp[-2]));	
 		//2.assignments
 		func_dec_api0->ret_type = type1->type_value;
 		func_dec_api0->func_id = id1->terminal_value;
 		func_dec_api0->func_args = func_arglist1->args;
 	}
-#line 1458 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1457 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 9:
-#line 123 "parser.ypp" /* yacc.c:1646  */
-    { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
+#line 122 "parser.ypp" /* yacc.c:1646  */
+    { //+++++++++++++++++++++++++++++rule contains optional++++not implemented++++++++++++++++++
 		
 	}
-#line 1466 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1465 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 10:
-#line 126 "parser.ypp" /* yacc.c:1646  */
-    { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
+#line 125 "parser.ypp" /* yacc.c:1646  */
+    { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+
 		
 	}
-#line 1474 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1473 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 11:
-#line 131 "parser.ypp" /* yacc.c:1646  */
-    { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
+#line 130 "parser.ypp" /* yacc.c:1646  */
+    { //+++++++++++++++++++++++++++++rule contains optional++++not implemented++++++++++
 		
 	}
-#line 1482 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1481 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 12:
-#line 134 "parser.ypp" /* yacc.c:1646  */
+#line 133 "parser.ypp" /* yacc.c:1646  */
     {		//+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
 		
 	}
-#line 1490 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1489 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 13:
-#line 139 "parser.ypp" /* yacc.c:1646  */
+#line 138 "parser.ypp" /* yacc.c:1646  */
     { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
 		
 	}
-#line 1498 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1497 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 14:
-#line 142 "parser.ypp" /* yacc.c:1646  */
+#line 141 "parser.ypp" /* yacc.c:1646  */
     {		//+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
 		
 	}
-#line 1506 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1505 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 15:
-#line 147 "parser.ypp" /* yacc.c:1646  */
+#line 146 "parser.ypp" /* yacc.c:1646  */
     { 
 		//1.casting
 		(yyval) = new FuncApiSymbol();
-		FuncApiSymbol* func_def_api0 = dynamic_cast<FuncApiSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>((yyvsp[-3]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-        Terminal *id1 = dynamic_cast<Terminal*>((yyvsp[-2]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		FuncApiSymbol* func_def_api0 = dynamic_cast<FuncApiSymbol*>((yyval));	
+		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>((yyvsp[-3]));	
+        Terminal *id1 = dynamic_cast<Terminal*>((yyvsp[-2]));	
 		//2.assignments
 		func_def_api0->ret_type = type1->type_value;
 		func_def_api0->func_id = id1->terminal_value;
 	}
-#line 1521 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1520 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 16:
-#line 157 "parser.ypp" /* yacc.c:1646  */
+#line 156 "parser.ypp" /* yacc.c:1646  */
     { 
 		//1.casting
 		(yyval) = new FuncApiSymbol();
-		FuncApiSymbol* func_def_api0 = dynamic_cast<FuncApiSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>((yyvsp[-4]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-        Terminal *id1 = dynamic_cast<Terminal*>((yyvsp[-3]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		FuncApiSymbol* func_def_api0 = dynamic_cast<FuncApiSymbol*>((yyval));	
+		TypeSymbol *type1 = dynamic_cast<TypeSymbol*>((yyvsp[-4]));	
+        Terminal *id1 = dynamic_cast<Terminal*>((yyvsp[-3]));	
+		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>((yyvsp[-1]));	
 		//2.assignments
 		func_def_api0->ret_type = type1->type_value;
 		func_def_api0->func_id = id1->terminal_value;
 		func_def_api0->func_args = func_arglist1->args;
 
 	}
-#line 1539 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1538 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 17:
-#line 170 "parser.ypp" /* yacc.c:1646  */
+#line 169 "parser.ypp" /* yacc.c:1646  */
     { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
 		
 
 	}
-#line 1548 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1547 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 18:
-#line 174 "parser.ypp" /* yacc.c:1646  */
+#line 173 "parser.ypp" /* yacc.c:1646  */
     { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
 		
 
 	}
-#line 1557 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1556 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 19:
-#line 180 "parser.ypp" /* yacc.c:1646  */
+#line 179 "parser.ypp" /* yacc.c:1646  */
     { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
 		
 
 	}
-#line 1566 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1565 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 20:
-#line 185 "parser.ypp" /* yacc.c:1646  */
+#line 184 "parser.ypp" /* yacc.c:1646  */
     { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
 		
 
 	}
-#line 1575 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1574 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 21:
-#line 191 "parser.ypp" /* yacc.c:1646  */
+#line 190 "parser.ypp" /* yacc.c:1646  */
     { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
 		
 	}
-#line 1583 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1582 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 22:
-#line 194 "parser.ypp" /* yacc.c:1646  */
+#line 193 "parser.ypp" /* yacc.c:1646  */
     { //+++++++++++++++++++++++++++++rule contains optional++++not implemented+++++++++++++++++++++++
 		
 	}
-#line 1591 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1590 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 23:
-#line 203 "parser.ypp" /* yacc.c:1646  */
+#line 198 "parser.ypp" /* yacc.c:1646  */
     { //-----------------------------------rule below finished---------------------------------------------
 		//1.casting
 		(yyval)=new FuncArgsSymbol();
-        FuncArgsSymbol* func_arglist0 = dynamic_cast<FuncArgsSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>((yyvsp[-2]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-        DclSymbol* dcl1 = dynamic_cast<DclSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+        FuncArgsSymbol* func_arglist0 = dynamic_cast<FuncArgsSymbol*>((yyval));	
+		FuncArgsSymbol* func_arglist1 = dynamic_cast<FuncArgsSymbol*>((yyvsp[-2]));	
+        DclSymbol* dcl1 = dynamic_cast<DclSymbol*>((yyvsp[0]));	
 		//2.check parameters - if needed we do assignments
 		func_arglist0->args = func_arglist1->args;	//parent symbol gets child symbol argument list
 		for(string id : dcl1->dcl_list){
@@ -1613,16 +1612,16 @@ yyreduce:
         }
 
 	}
-#line 1617 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1616 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 24:
-#line 224 "parser.ypp" /* yacc.c:1646  */
+#line 219 "parser.ypp" /* yacc.c:1646  */
     { 
 		//1.casting
 		(yyval)=new FuncArgsSymbol();
-        FuncArgsSymbol* func_arglist0 = dynamic_cast<FuncArgsSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-        DclSymbol* dcl1 = dynamic_cast<DclSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+        FuncArgsSymbol* func_arglist0 = dynamic_cast<FuncArgsSymbol*>((yyval));	
+        DclSymbol* dcl1 = dynamic_cast<DclSymbol*>((yyvsp[0]));	
 		//2.assignments
 		//for every variable in declaration list, we create argument and add it to function argument list
         for(string id : dcl1->dcl_list){
@@ -1630,11 +1629,11 @@ yyreduce:
             func_arglist0->args.push_back(arg);
         }
 	}
-#line 1634 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1633 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 25:
-#line 238 "parser.ypp" /* yacc.c:1646  */
+#line 233 "parser.ypp" /* yacc.c:1646  */
     {	//mid rule action@@@-------------------------------------------rule below finished---------------------------------------------
 		var_table.add_block_table();	//add var table for this block
 		//add all the variables to the created block so it knows them
@@ -1646,30 +1645,30 @@ yyreduce:
 		}
 
 	}
-#line 1650 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1649 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 26:
-#line 249 "parser.ypp" /* yacc.c:1646  */
+#line 244 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval)=new StmtSymbol();
-        StmtSymbol *blk0 = dynamic_cast<StmtSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-        StmtSymbol *stlist1 = dynamic_cast<StmtSymbol*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+        StmtSymbol *blk0 = dynamic_cast<StmtSymbol*>((yyval));	
+        StmtSymbol *stlist1 = dynamic_cast<StmtSymbol*>((yyvsp[-1]));	
 
         blk0->nextlist = stlist1->nextlist;
         var_table.remove_block_table();		//remove the block table when exiting the block
 	}
-#line 1663 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1662 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 27:
-#line 259 "parser.ypp" /* yacc.c:1646  */
+#line 254 "parser.ypp" /* yacc.c:1646  */
     {  	//-------------------------------------------------rule below finished---------------------------------------------
 		//1.casting
 		(yyval) = new DclSymbol();
-		DclSymbol* dcl0 = dynamic_cast<DclSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		Terminal* id1 = dynamic_cast<Terminal*>((yyvsp[-2]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		TypeSymbol* type1 = dynamic_cast<TypeSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		DclSymbol* dcl0 = dynamic_cast<DclSymbol*>((yyval));	
+		Terminal* id1 = dynamic_cast<Terminal*>((yyvsp[-2]));	
+		TypeSymbol* type1 = dynamic_cast<TypeSymbol*>((yyvsp[0]));	
 		//2.var check
 		if(type1->type_value == void_t){
             semantic_err("rule 2: can't declare variable of type void");
@@ -1678,17 +1677,17 @@ yyreduce:
         dcl0->id_type = type1->type_value;
         dcl0->dcl_list.push_front(id1->terminal_value);
 	}
-#line 1682 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1681 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 28:
-#line 273 "parser.ypp" /* yacc.c:1646  */
+#line 268 "parser.ypp" /* yacc.c:1646  */
     { 
 		//1.casting
 		(yyval) = new DclSymbol();
-		DclSymbol* dcl0 = dynamic_cast<DclSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		Terminal* id1 = dynamic_cast<Terminal*>((yyvsp[-2]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		DclSymbol* dcl1 = dynamic_cast<DclSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		DclSymbol* dcl0 = dynamic_cast<DclSymbol*>((yyval));	
+		Terminal* id1 = dynamic_cast<Terminal*>((yyvsp[-2]));	
+		DclSymbol* dcl1 = dynamic_cast<DclSymbol*>((yyvsp[0]));	
 		//2.var check
 		//check if variable is already declared in this scope
 		auto it = dcl1->dcl_list.begin();
@@ -1705,41 +1704,41 @@ yyreduce:
         dcl0->dcl_list.push_front(id1->terminal_value);
 
 	}
-#line 1709 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1708 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 29:
-#line 297 "parser.ypp" /* yacc.c:1646  */
+#line 292 "parser.ypp" /* yacc.c:1646  */
     { 	//---------------------------------------------------------rule below finished---------------------------------------------
 		(yyval) = new TypeSymbol();
-		TypeSymbol* type0 = dynamic_cast<TypeSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		type0->type_value = int_;	//changed, don't touch
+		TypeSymbol* type0 = dynamic_cast<TypeSymbol*>((yyval));	
+		type0->type_value = int_;	
 	}
-#line 1719 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1718 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 30:
-#line 302 "parser.ypp" /* yacc.c:1646  */
+#line 297 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new TypeSymbol();
-		TypeSymbol* type0 = dynamic_cast<TypeSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		type0->type_value = float_;	//changed, don't touch
+		TypeSymbol* type0 = dynamic_cast<TypeSymbol*>((yyval));	
+		type0->type_value = float_;	
 	}
-#line 1729 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1728 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 31:
-#line 307 "parser.ypp" /* yacc.c:1646  */
+#line 302 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new TypeSymbol();
-		TypeSymbol* type0 = dynamic_cast<TypeSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		type0->type_value = void_t;	//changed, don't touch
+		TypeSymbol* type0 = dynamic_cast<TypeSymbol*>((yyval));	
+		type0->type_value = void_t;	
 	}
-#line 1739 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1738 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 32:
-#line 314 "parser.ypp" /* yacc.c:1646  */
+#line 309 "parser.ypp" /* yacc.c:1646  */
     {	//---------------------------------------------rule below finished---------------------------------------------
 		//1.casting
 		(yyval) = new StmtSymbol();
@@ -1751,23 +1750,23 @@ yyreduce:
 		code_buffer.backpatch(stlist1->nextlist, M1->quad);
         stlist0->nextlist.merge(stmt1->nextlist);
 	}
-#line 1755 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1754 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 33:
-#line 325 "parser.ypp" /* yacc.c:1646  */
+#line 320 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new StmtSymbol();
 	}
-#line 1763 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1762 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 34:
-#line 330 "parser.ypp" /* yacc.c:1646  */
+#line 325 "parser.ypp" /* yacc.c:1646  */
     { 		//---------------------------------------------rule below finished-------------------------------------------------
 		//1.casting
 		(yyval) = new StmtSymbol();
-		DclSymbol* dcl1 = dynamic_cast<DclSymbol*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		DclSymbol* dcl1 = dynamic_cast<DclSymbol*>((yyvsp[-1]));	
 		//2. var check
 		for(string id : dcl1->dcl_list){
 			//check if variable is already declared in this scope
@@ -1778,91 +1777,91 @@ yyreduce:
 			var_table.block_tables.front().insert_variable(id, dcl1->id_type);	//add this variable to the inner-most block
 		}
 		//3. add var to the stack
-		string three_add_code = string("ADD2I") + " " + SP + " " + SP + " " + to_string(dcl1->dcl_list.size() * 4);	//add variables to stack
+		string three_add_code = string("ADD2I") + " " + SP + " " + SP + " " + to_string(dcl1->dcl_list.size() * 4);	//update stack
 		code_buffer.emit(three_add_code);
 	}
-#line 1785 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1784 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 35:
-#line 347 "parser.ypp" /* yacc.c:1646  */
-    { 		//TODO weird there's no assignment from exp to stmt
+#line 342 "parser.ypp" /* yacc.c:1646  */
+    { 		
 		(yyval) = new StmtSymbol();
 	}
-#line 1793 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1792 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 36:
-#line 350 "parser.ypp" /* yacc.c:1646  */
-    {		//TODO weird there's no assignment from exp to stmt
+#line 345 "parser.ypp" /* yacc.c:1646  */
+    {		
 		(yyval) = new StmtSymbol();
 	}
-#line 1801 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1800 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 37:
-#line 353 "parser.ypp" /* yacc.c:1646  */
+#line 348 "parser.ypp" /* yacc.c:1646  */
     { 
 		//1.casting
 		(yyval) = new StmtSymbol();
-		StmtSymbol* stmt0 = dynamic_cast<StmtSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		StmtSymbol* cntrl1 = dynamic_cast<StmtSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		StmtSymbol* stmt0 = dynamic_cast<StmtSymbol*>((yyval));	
+		StmtSymbol* cntrl1 = dynamic_cast<StmtSymbol*>((yyvsp[0]));	
 		//2.control flow
 		stmt0->nextlist = cntrl1->nextlist;
 	}
-#line 1814 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1813 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 38:
-#line 361 "parser.ypp" /* yacc.c:1646  */
+#line 356 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new StmtSymbol();
 	}
-#line 1822 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1821 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 39:
-#line 364 "parser.ypp" /* yacc.c:1646  */
+#line 359 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new StmtSymbol();
 	}
-#line 1830 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1829 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 40:
-#line 367 "parser.ypp" /* yacc.c:1646  */
+#line 362 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new StmtSymbol();
 	}
-#line 1838 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1837 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 41:
-#line 370 "parser.ypp" /* yacc.c:1646  */
+#line 365 "parser.ypp" /* yacc.c:1646  */
     {
 		//1.casting
 		(yyval) = new StmtSymbol();
-		StmtSymbol* stmt0 = dynamic_cast<StmtSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		StmtSymbol* blk1 = dynamic_cast<StmtSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		StmtSymbol* stmt0 = dynamic_cast<StmtSymbol*>((yyval));	
+		StmtSymbol* blk1 = dynamic_cast<StmtSymbol*>((yyvsp[0]));	
 		//2.control flow
 		stmt0->nextlist = blk1->nextlist;
 	}
-#line 1851 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1850 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 42:
-#line 380 "parser.ypp" /* yacc.c:1646  */
+#line 375 "parser.ypp" /* yacc.c:1646  */
     {		//---------------------------------------------rule below finished-----------------------------------------
 		//1.casting
 		(yyval) = new Node();
-		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>((yyvsp[-1]));	
 		//2.check return types
 		if(func_table.curr_func_entry->ret_type != exp1->exp_type){
             semantic_err("rule 1: assignment between different types is not allowed");
 		} 
 
 		if(exp1->exp_type == void_t){	
-            semantic_err("rule 2: can't assign from variable of type void");	//shouldn't get here
+            semantic_err("rule 2: can't assign from variable of type void");	
 		}
 		//3.move return value to defined return register
 		string three_add_code;
@@ -1877,11 +1876,11 @@ yyreduce:
 		string ret =  "RETRN";
 		code_buffer.emit(ret);
 	}
-#line 1881 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1880 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 43:
-#line 405 "parser.ypp" /* yacc.c:1646  */
+#line 400 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new Node();
 		if(func_table.curr_func_entry->ret_type != void_t){
@@ -1890,39 +1889,40 @@ yyreduce:
         string ret =  "RETRN";
 		code_buffer.emit(ret);
 	}
-#line 1894 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1893 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 44:
-#line 415 "parser.ypp" /* yacc.c:1646  */
+#line 410 "parser.ypp" /* yacc.c:1646  */
     { //---------------------------------------------rule below finished-----------------------------------------
 		//1.casting
 		(yyval) = new Node();
-		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>((yyvsp[-2]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>((yyvsp[-2]));	
 		//2.execute assembly
 		string three_add_code;
+		string letter_type;
         if(exp1->exp_type == int_){
-            three_add_code = string("PRNTI") + " " + exp1->place;
-			code_buffer.emit(three_add_code);
+            letter_type = "I";
 		}
         else if(exp1->exp_type == float_){
-            three_add_code = string("PRNTF") + " " + exp1->place;
-			code_buffer.emit(three_add_code);
+            letter_type = "F";
 		}
 		else{	//type == void_t)
             semantic_err("rule 2: can't write to variable of type void");
 		}
+		three_add_code = string("PRNT") + letter_type + " " + exp1->place;
+		code_buffer.emit(three_add_code);
 
 	}
 #line 1918 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 45:
-#line 434 "parser.ypp" /* yacc.c:1646  */
+#line 430 "parser.ypp" /* yacc.c:1646  */
     { 
 		//1.casting
 		(yyval) = new Node();
-		Terminal* str1 = dynamic_cast<Terminal*>((yyvsp[-2]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		Terminal* str1 = dynamic_cast<Terminal*>((yyvsp[-2]));	
 		//2.execute assembly
 		//check special character within string
 		string print_ascii;
@@ -1947,7 +1947,7 @@ yyreduce:
                 }
             }
 			else {	//no special character
-                string three_add_code = string("PRNTC") + " " + to_string(int(str[i]));		//why int???
+                string three_add_code = string("PRNTC") + " " + to_string(int(str[i]));		//print ascii value
 				code_buffer.emit(three_add_code);
             }
 		}
@@ -1956,100 +1956,105 @@ yyreduce:
     break;
 
   case 46:
-#line 469 "parser.ypp" /* yacc.c:1646  */
+#line 465 "parser.ypp" /* yacc.c:1646  */
     { 	//---------------------------------------------rule below finished-----------------------------------------
+		//1.casting
 		(yyval) = new Node();
-		Node* read0 = dynamic_cast<Node*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		ExpSymbol* lval1 = dynamic_cast<ExpSymbol*>((yyvsp[-2]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		Node* read0 = dynamic_cast<Node*>((yyval));	
+		ExpSymbol* lval1 = dynamic_cast<ExpSymbol*>((yyvsp[-2]));	
+		//2.execute assembly
 		string three_add_code;
 		string letter_type = "I";
 		if(lval1->exp_type == float_){
 			letter_type = "F";
 		}
-		else if(lval1->exp_type == void_t){		//shouldn't get here
+		else if(lval1->exp_type == void_t){		
 			semantic_err("rule 2: can't read to variable of type void");
 		}
 		string temp_reg = var_table.block_tables.front().next_temp_reg(lval1->exp_type);
 		three_add_code = string("READ")+letter_type + " " + temp_reg;
 		code_buffer.emit(three_add_code);
-		three_add_code = string("STOR")+letter_type + " " + temp_reg + " " + lval1->place + " " + "0";	//again why store and not copy?
+		three_add_code = string("STOR")+letter_type + " " + temp_reg + " " + lval1->place + " " + "0";	
 		code_buffer.emit(three_add_code);
 		
 
 	}
-#line 1982 "parser.tab.cpp" /* yacc.c:1646  */
+#line 1983 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 47:
-#line 492 "parser.ypp" /* yacc.c:1646  */
+#line 489 "parser.ypp" /* yacc.c:1646  */
     {	//---------------------------------------------rule below finished-----------------------------------------
+		//1.casting
 		(yyval) = new StmtSymbol();
-		StmtSymbol* assn0 = dynamic_cast<StmtSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		ExpSymbol* lval1 = dynamic_cast<ExpSymbol*>((yyvsp[-3]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		StmtSymbol* assn0 = dynamic_cast<StmtSymbol*>((yyval));	
+		ExpSymbol* lval1 = dynamic_cast<ExpSymbol*>((yyvsp[-3]));	
+		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>((yyvsp[-1]));	
+		//2.check same types
 		if(lval1->exp_type != exp1->exp_type){	
 			semantic_err("rule 1: assignment between different types is not allowed");
 		}
-
+		//3.execute assembly
 		string letter_type = "I";
 		if(lval1->exp_type == float_){
 			letter_type = "F";
 		}
-		else if(lval1->exp_type == void_t){		//shouldn't get here
+		else if(lval1->exp_type == void_t){		
 			semantic_err("rule 2: can't assign to variable of type void");
 		}
-		string three_add_code = string("STOR")+letter_type + " " + exp1->place + " " + lval1->place + " " + "0";	//why store and not copy?
+		string three_add_code = string("STOR")+letter_type + " " + exp1->place + " " + lval1->place + " " + "0";	
 		code_buffer.emit(three_add_code);
 
 	}
-#line 2007 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2010 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 48:
-#line 514 "parser.ypp" /* yacc.c:1646  */
+#line 513 "parser.ypp" /* yacc.c:1646  */
     {     		//---------------------------------------------rule below finished-------------------------------------------------
+		//1.casting
 		(yyval) = new ExpSymbol();
-		ExpSymbol* lval0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		Terminal* id1 = dynamic_cast<Terminal*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* lval0 = dynamic_cast<ExpSymbol*>((yyval));	
+		Terminal* id1 = dynamic_cast<Terminal*>((yyvsp[0]));	
 
-		//checking if variable ID is declared
+		//2.checking if variable ID is declared
 		Var_Table_Entry var_entry;
 		if(!var_table.is_var_exist(var_entry, id1->terminal_value)){
 			string err = "variable '" + id1->terminal_value + "' is not declared";
 			semantic_err(err);
 		}
-
+		//3.execute assembly
 		string three_add_code;
 		string temp_reg = var_table.block_tables.front().next_temp_reg(int_);
 		three_add_code = string("ADD2I") + " " + temp_reg + " " + DP + " " + to_string(var_entry.offset);
 		code_buffer.emit(three_add_code);
-
+		//4.assignments
         lval0->place = temp_reg;		//update parent symbol place
 		lval0->exp_type = var_entry.type;	//update parent symbol type
 
-		if(var_entry.type == float_){
+		if(var_entry.type == float_){	//if variable type is float
                     string float_reg = var_table.block_tables.front().next_temp_reg(float_);
                     three_add_code = string("CITOF") + " " + float_reg + " " + temp_reg;
 					code_buffer.emit(three_add_code);
                     lval0->place = float_reg;
         }
 	}
-#line 2039 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2043 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 49:
 #line 543 "parser.ypp" /* yacc.c:1646  */
     {     //--------------------------------------rule below finished--------------------------------
+		//1.casting
 		(yyval) = new StmtSymbol();
-		StmtSymbol* cntrl0 = dynamic_cast<StmtSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>((yyvsp[-7]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		Marker_M_Symbol* M1 = dynamic_cast<Marker_M_Symbol*>((yyvsp[-5]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		StmtSymbol* stmt1 = dynamic_cast<StmtSymbol*>((yyvsp[-4]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		Marker_N_Symbol* N1 = dynamic_cast<Marker_N_Symbol*>((yyvsp[-2]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		Marker_M_Symbol* M2 = dynamic_cast<Marker_M_Symbol*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		StmtSymbol* stmt2 = dynamic_cast<StmtSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		StmtSymbol* cntrl0 = dynamic_cast<StmtSymbol*>((yyval));	
+		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>((yyvsp[-7]));	
+		Marker_M_Symbol* M1 = dynamic_cast<Marker_M_Symbol*>((yyvsp[-5]));	
+		StmtSymbol* stmt1 = dynamic_cast<StmtSymbol*>((yyvsp[-4]));	
+		Marker_N_Symbol* N1 = dynamic_cast<Marker_N_Symbol*>((yyvsp[-2]));	
+		Marker_M_Symbol* M2 = dynamic_cast<Marker_M_Symbol*>((yyvsp[-1]));	
+		StmtSymbol* stmt2 = dynamic_cast<StmtSymbol*>((yyvsp[0]));	
+		//2.control flow
 		code_buffer.backpatch(bexp1->truelist, M1->quad);
         code_buffer.backpatch(bexp1->falselist, M2->quad);
         cntrl0->nextlist.merge(N1->nextlist);
@@ -2057,110 +2062,116 @@ yyreduce:
         cntrl0->nextlist.merge(stmt2->nextlist);
 
 	}
-#line 2061 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2066 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 50:
-#line 560 "parser.ypp" /* yacc.c:1646  */
+#line 561 "parser.ypp" /* yacc.c:1646  */
     { 
+		//1.casting
 		(yyval) = new StmtSymbol();
-		StmtSymbol* cntrl0 = dynamic_cast<StmtSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>((yyvsp[-3]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		Marker_M_Symbol* M1 = dynamic_cast<Marker_M_Symbol*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		StmtSymbol* stmt1 = dynamic_cast<StmtSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		StmtSymbol* cntrl0 = dynamic_cast<StmtSymbol*>((yyval));	
+		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>((yyvsp[-3]));	
+		Marker_M_Symbol* M1 = dynamic_cast<Marker_M_Symbol*>((yyvsp[-1]));	
+		StmtSymbol* stmt1 = dynamic_cast<StmtSymbol*>((yyvsp[0]));	
+		//2.control flow
 		code_buffer.backpatch(bexp1->truelist, M1->quad);
 		cntrl0->nextlist.merge(bexp1->falselist);
 		cntrl0->nextlist.merge(stmt1->nextlist);
 
 	}
-#line 2078 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2084 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 51:
-#line 572 "parser.ypp" /* yacc.c:1646  */
+#line 574 "parser.ypp" /* yacc.c:1646  */
     { 
+		//1.casting
 		(yyval) = new StmtSymbol();
-		StmtSymbol* cntrl0 = dynamic_cast<StmtSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		Marker_M_Symbol* M1 = dynamic_cast<Marker_M_Symbol*>((yyvsp[-4]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>((yyvsp[-3]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		Marker_M_Symbol* M2 = dynamic_cast<Marker_M_Symbol*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		StmtSymbol* stmt1 = dynamic_cast<StmtSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		StmtSymbol* cntrl0 = dynamic_cast<StmtSymbol*>((yyval));	
+		Marker_M_Symbol* M1 = dynamic_cast<Marker_M_Symbol*>((yyvsp[-4]));
+		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>((yyvsp[-3]));	
+		Marker_M_Symbol* M2 = dynamic_cast<Marker_M_Symbol*>((yyvsp[-1]));
+		StmtSymbol* stmt1 = dynamic_cast<StmtSymbol*>((yyvsp[0]));	
+		//2.control flow
 		code_buffer.backpatch(bexp1->truelist, M2->quad);
 		code_buffer.backpatch(stmt1->nextlist, M1->quad);
 		cntrl0->nextlist.merge(bexp1->falselist);
 		string three_add_code = string("UJUMP") + " " + to_string(M1->quad);
 		code_buffer.emit(three_add_code);
 	}
-#line 2097 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2104 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 52:
-#line 588 "parser.ypp" /* yacc.c:1646  */
+#line 591 "parser.ypp" /* yacc.c:1646  */
     {    		//---------------------------------------------rule below finished-----------------------------------------
+		//1.casting
 		(yyval) = new BexpSymbol();
-		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,... 
-		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>((yyvsp[-3]));	//don't know if necessary, maybe work dircetly through $$,S1,... 
-		Marker_M_Symbol* M = dynamic_cast<Marker_M_Symbol*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,... 
-		BexpSymbol* bexp2 = dynamic_cast<BexpSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,... 
-
+		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>((yyval));	
+		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>((yyvsp[-3]));	
+		Marker_M_Symbol* M = dynamic_cast<Marker_M_Symbol*>((yyvsp[-1])); 
+		BexpSymbol* bexp2 = dynamic_cast<BexpSymbol*>((yyvsp[0]));	
+		//2.control flow
 		code_buffer.backpatch(bexp1->falselist, M->quad);
         bexp0->truelist.merge(bexp1->truelist);
         bexp0->truelist.merge(bexp2->truelist);
         bexp0->falselist.merge(bexp2->falselist);
 	}
-#line 2114 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2122 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 53:
-#line 600 "parser.ypp" /* yacc.c:1646  */
+#line 604 "parser.ypp" /* yacc.c:1646  */
     { 
+		//1.casting
 		(yyval) = new BexpSymbol();
-		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,... 
-		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>((yyvsp[-3]));	//don't know if necessary, maybe work dircetly through $$,S1,... 
-		Marker_M_Symbol* M = dynamic_cast<Marker_M_Symbol*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,... 
-		BexpSymbol* bexp2 = dynamic_cast<BexpSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,... 
-
+		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>((yyval));	 
+		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>((yyvsp[-3]));	 
+		Marker_M_Symbol* M = dynamic_cast<Marker_M_Symbol*>((yyvsp[-1])); 
+		BexpSymbol* bexp2 = dynamic_cast<BexpSymbol*>((yyvsp[0]));	
+		//2.control flow
 		code_buffer.backpatch(bexp1->truelist, M->quad);
 		bexp0->truelist.merge(bexp2->truelist);	
 		bexp0->falselist.merge(bexp1->falselist);
 		bexp0->falselist.merge(bexp2->falselist);
 	}
-#line 2131 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2140 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 54:
-#line 612 "parser.ypp" /* yacc.c:1646  */
+#line 617 "parser.ypp" /* yacc.c:1646  */
     { 
+		//1.casting
 		(yyval) = new BexpSymbol();
-		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,... 
-		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,... 
-
+		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>((yyval));
+		BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>((yyvsp[0]));
+		//2.control flow
 		//swap true and false lists in assignment to parent symbol
 		bexp0->truelist.merge(bexp1->falselist);
 		bexp0->falselist.merge(bexp1->truelist);
 	}
-#line 2145 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2155 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 55:
-#line 621 "parser.ypp" /* yacc.c:1646  */
+#line 627 "parser.ypp" /* yacc.c:1646  */
     { 
+		//1.casting
 		(yyval) = new BexpSymbol();
-		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...  
-		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>((yyvsp[-2]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		Terminal* relop2 = dynamic_cast<Terminal*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		ExpSymbol* exp2 = dynamic_cast<ExpSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>((yyval));	 
+		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>((yyvsp[-2]));	
+		Terminal* relop2 = dynamic_cast<Terminal*>((yyvsp[-1]));	
+		ExpSymbol* exp2 = dynamic_cast<ExpSymbol*>((yyvsp[0]));	
 
-		
+		//2.check different types and if void type
 		if(exp1->exp_type != exp2->exp_type){	
 			semantic_err("RELOP operation between different types is not allowed");
 		}
 		if(exp1->exp_type == void_t || exp2->exp_type == void_t){	
 			semantic_err("RELOP operation is not allowed on type void");
 		}
-
+		//3. execute relop command
 		string three_add_code;
 		string result_reg = var_table.block_tables.front().next_temp_reg(int_);	//assume it's int, otherwise need casting
 		string letter_type = "I";
@@ -2182,7 +2193,7 @@ yyreduce:
 				code_buffer.emit(three_add_code);
 			}
 			bexp0->truelist.push_back(code_buffer.nextquad());
-            three_add_code = string("BNEQZ") + " " + result_reg;	//expressions equal --> res=1 , why the emit is here???????
+            three_add_code = string("BNEQZ") + " " + result_reg;	//expressions equal --> res=1 
 			code_buffer.emit(three_add_code); 
 		}
 		else if(relop2->terminal_value == "<>"){
@@ -2199,7 +2210,7 @@ yyreduce:
 				code_buffer.emit(three_add_code);
 			}
 			bexp0->truelist.push_back(code_buffer.nextquad());
-            three_add_code = string("BNEQZ") + " " + result_reg;	// why the emit is here????????????????????????????????????
+            three_add_code = string("BNEQZ") + " " + result_reg;	
 			code_buffer.emit(three_add_code); 
 		}
 		else if(relop2->terminal_value == "<"){
@@ -2216,7 +2227,7 @@ yyreduce:
 				code_buffer.emit(three_add_code);
 			}
 			bexp0->truelist.push_back(code_buffer.nextquad());
-            three_add_code = string("BNEQZ") + " " + result_reg;	// why the emit is here????????????????????????????????????
+            three_add_code = string("BNEQZ") + " " + result_reg;	
 			code_buffer.emit(three_add_code); 
 		}
 		else if(relop2->terminal_value == "<="){
@@ -2233,7 +2244,7 @@ yyreduce:
 				code_buffer.emit(three_add_code);
 			}
 			bexp0->truelist.push_back(code_buffer.nextquad());
-            three_add_code = string("BREQZ") + " " + result_reg;	//exp1 <= exp2 --> res=0 , why the emit is here????????????
+            three_add_code = string("BREQZ") + " " + result_reg;	//exp1 <= exp2 --> res=0 
 			code_buffer.emit(three_add_code); 
 		}
 		else if(relop2->terminal_value == ">"){
@@ -2250,7 +2261,7 @@ yyreduce:
 				code_buffer.emit(three_add_code);
 			}
 			bexp0->truelist.push_back(code_buffer.nextquad());
-            three_add_code = string("BNEQZ") + " " + result_reg;	// why the emit is here????????????????????????????????????
+            three_add_code = string("BNEQZ") + " " + result_reg;	
 			code_buffer.emit(three_add_code); 
 		}
 		else if(relop2->terminal_value == ">="){
@@ -2267,7 +2278,7 @@ yyreduce:
 				code_buffer.emit(three_add_code);
 			}
 			bexp0->truelist.push_back(code_buffer.nextquad());
-            three_add_code = string("BREQZ") + " " + result_reg;	//exp1 <= exp2 --> res=0 , why the emit is here????????????
+            three_add_code = string("BREQZ") + " " + result_reg;	//exp1 <= exp2 --> res=0 
 			code_buffer.emit(three_add_code); 
 		}
 		else{
@@ -2275,41 +2286,45 @@ yyreduce:
 		}	//end of if else
 
 		bexp0->falselist.push_back(code_buffer.nextquad());	//update parent falselist
-		string jump = "UJUMP";
+		string jump = "UJUMP";		//next command is jump if relop is false
 		code_buffer.emit(jump);
 
 	}
-#line 2283 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2294 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 56:
-#line 754 "parser.ypp" /* yacc.c:1646  */
+#line 761 "parser.ypp" /* yacc.c:1646  */
     { 
+		//1.casting
 		(yyval) = new BexpSymbol();
-		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...        
-        BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		BexpSymbol* bexp0 = dynamic_cast<BexpSymbol*>((yyval));	    
+        BexpSymbol* bexp1 = dynamic_cast<BexpSymbol*>((yyvsp[-1]));	
+		//2.control flow
 		bexp0->truelist = bexp1->truelist;        
         bexp0->falselist = bexp1->falselist; 
 	}
-#line 2296 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2308 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 57:
-#line 764 "parser.ypp" /* yacc.c:1646  */
+#line 772 "parser.ypp" /* yacc.c:1646  */
     {    		//---------------------------------------------rule below finished-----------------------------------------
+		//1.casting
 		(yyval) = new ExpSymbol();
-		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>((yyvsp[-2]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		Terminal* addop2 = dynamic_cast<Terminal*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		ExpSymbol* exp2 = dynamic_cast<ExpSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	
+		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>((yyvsp[-2]));	
+		Terminal* addop2 = dynamic_cast<Terminal*>((yyvsp[-1]));	
+		ExpSymbol* exp2 = dynamic_cast<ExpSymbol*>((yyvsp[0]));	
+		
+		//2.check different types and if void type
 		if(exp1->exp_type != exp2->exp_type){	
 			semantic_err("ADDOP operation between different types is not allowed");
 		}
 		if(exp1->exp_type == void_t || exp2->exp_type == void_t){	
 			semantic_err("ADDOP operation is not allowed on type void");
 		}
-
+		//3. execute addop command
 		string three_add_code;
 		string result_reg = var_table.block_tables.front().next_temp_reg(exp1->exp_type);
 		string letter_type = "I";
@@ -2328,30 +2343,32 @@ yyreduce:
 		else{	//operational error
 			operational_err("the operator is not ADDOP");
 		}
-
+		//4.assignments
 		exp0->place = result_reg;		//update parent symbol place
 		exp0->exp_type = exp1->exp_type;	//update parent symbol type
 
 	}
-#line 2337 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2352 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 58:
-#line 800 "parser.ypp" /* yacc.c:1646  */
+#line 811 "parser.ypp" /* yacc.c:1646  */
     { 
+		//1.casting
 		(yyval) = new ExpSymbol();
-		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>((yyvsp[-2]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		Terminal* mulop2 = dynamic_cast<Terminal*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		ExpSymbol* exp2 = dynamic_cast<ExpSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	
+		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>((yyvsp[-2]));	
+		Terminal* mulop2 = dynamic_cast<Terminal*>((yyvsp[-1]));	
+		ExpSymbol* exp2 = dynamic_cast<ExpSymbol*>((yyvsp[0]));	
 
+		//2.check different types and if void type
 		if(exp1->exp_type != exp2->exp_type){	
 			semantic_err("MULOP operation between different types is not allowed");
 		}
 		if(exp1->exp_type == void_t || exp2->exp_type == void_t){	
 			semantic_err("MULOP operation is not allowed on type void");
 		}
-
+		//3. execute addop command
 		string three_add_code;
 		string result_reg = var_table.block_tables.front().next_temp_reg(exp1->exp_type);
 		string letter_type = "I";
@@ -2370,34 +2387,37 @@ yyreduce:
 		else{	//operational error
 			operational_err("the operator is not MULOP");
 		}
-
+		//4.assignments
 		exp0->place = result_reg;		//update parent symbol place
 		exp0->exp_type = exp1->exp_type;	//update parent symbol type
 
 	}
-#line 2379 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2396 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 59:
-#line 837 "parser.ypp" /* yacc.c:1646  */
+#line 850 "parser.ypp" /* yacc.c:1646  */
     { 
+		//1.casting
 		(yyval) = new ExpSymbol();
-		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	
+		ExpSymbol* exp1 = dynamic_cast<ExpSymbol*>((yyvsp[-1]));	
+		//2.assignments
 		exp0->place = exp1->place;		//update parent symbol place
 		exp0->exp_type = exp1->exp_type;	//update parent symbol type
 	}
-#line 2392 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2410 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 60:
-#line 845 "parser.ypp" /* yacc.c:1646  */
+#line 859 "parser.ypp" /* yacc.c:1646  */
     { 
+		//1.casting
 		(yyval) = new ExpSymbol();
-		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		TypeSymbol* type1 = dynamic_cast<TypeSymbol*>((yyvsp[-2]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		ExpSymbol* exp2 = dynamic_cast<ExpSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	
+		TypeSymbol* type1 = dynamic_cast<TypeSymbol*>((yyvsp[-2]));
+		ExpSymbol* exp2 = dynamic_cast<ExpSymbol*>((yyvsp[0]));	
+		//2.check different types and if void
 		string three_add_code;
 		if(type1->type_value == exp2->exp_type){	//sam type, no casting needed
 			exp0->place = exp2->place;		//update parent symbol place
@@ -2406,8 +2426,8 @@ yyreduce:
 		else{
 			if(type1->type_value == void_t || exp2->exp_type == void_t){
 				semantic_err("casting from/to type void is not allowed");
-			}
-			else if(type1->type_value == int_){	//we can change the cond to exp2->exp_type == float_
+			}	//3.assignments depends on type
+			else if(type1->type_value == int_){	
 				exp0->place = var_table.block_tables.front().next_temp_reg(int_);
 				three_add_code = string("CFTOI") + " " + exp0->place + " " + exp2->place;
 				code_buffer.emit(three_add_code);
@@ -2421,22 +2441,24 @@ yyreduce:
 		}
 
 	}
-#line 2425 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2445 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 61:
-#line 873 "parser.ypp" /* yacc.c:1646  */
+#line 889 "parser.ypp" /* yacc.c:1646  */
     { 
+		//1.casting
 		(yyval) = new ExpSymbol();
-		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		Terminal* id1 = dynamic_cast<Terminal*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
+		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	
+		Terminal* id1 = dynamic_cast<Terminal*>((yyvsp[0]));	
 
-		//checking if variable ID is declared
+		//2.checking if variable ID is declared
 		Var_Table_Entry var_entry;
 		if(!var_table.is_var_exist(var_entry, id1->terminal_value)){
 			string err = "variable '" + id1->terminal_value + "' is not declared";
 			semantic_err(err);
 		}
+		//3.execute assembly
 		string three_add_code;
 		string temp_reg = var_table.block_tables.front().next_temp_reg(var_entry.type);
 		if(var_entry.type == float_){
@@ -2449,90 +2471,99 @@ yyreduce:
 			three_add_code = string("LOADI") + " " + temp_reg + " " + DP + " " + to_string(var_entry.offset);
 			code_buffer.emit(three_add_code);
 		}
-		else{	//type == void , shouldn't get here
+		else{	//type == void 
 			semantic_err("rule 2: can't declare variable of type void");
 		}
+		//4.assignments
 		exp0->place = temp_reg;		//update parent symbol place
 		exp0->exp_type = var_entry.type;	//update parent symbol type
 
 	}
-#line 2460 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2483 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 62:
-#line 903 "parser.ypp" /* yacc.c:1646  */
+#line 922 "parser.ypp" /* yacc.c:1646  */
     { 
+		//1.casting
 		(yyval) = new ExpSymbol();
-		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		ExpSymbol* num1 = dynamic_cast<ExpSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	
+		ExpSymbol* num1 = dynamic_cast<ExpSymbol*>((yyvsp[0]));	
+		//2.assignments
 		exp0->place = num1->place;		//update parent symbol place
 		exp0->exp_type = num1->exp_type;	//update parent symbol type
 	}
-#line 2473 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2497 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 63:
-#line 911 "parser.ypp" /* yacc.c:1646  */
+#line 931 "parser.ypp" /* yacc.c:1646  */
     { 
+		//1.casting
 		(yyval) = new ExpSymbol();
-		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		ExpSymbol* call1 = dynamic_cast<ExpSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		ExpSymbol* exp0 = dynamic_cast<ExpSymbol*>((yyval));	
+		ExpSymbol* call1 = dynamic_cast<ExpSymbol*>((yyvsp[0]));
+		//2.assignments
 		exp0->place = call1->place;		//update parent symbol place
 		exp0->exp_type = call1->exp_type;	//update parent symbol type
 	}
-#line 2486 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2511 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 64:
-#line 921 "parser.ypp" /* yacc.c:1646  */
+#line 942 "parser.ypp" /* yacc.c:1646  */
     {   		//---------------------------------------------rule below finished---------------------------------------------
+		//1.casting
 		(yyval) = new ExpSymbol();
-		ExpSymbol* num0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		Terminal* int1 = dynamic_cast<Terminal*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		ExpSymbol* num0 = dynamic_cast<ExpSymbol*>((yyval));	
+		Terminal* int1 = dynamic_cast<Terminal*>((yyvsp[0]));	
+		//2.assignments
 		num0->place = var_table.block_tables.front().next_temp_reg(int_);	//update parent symbol place
 		num0->exp_type = int_;		//update parent symbol type
+		//3.execute assembly
 		string three_add_code = string("COPYI") + " " + num0->place + " " + int1->terminal_value;
 		code_buffer.emit(three_add_code);
 	}
-#line 2501 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2528 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 65:
-#line 931 "parser.ypp" /* yacc.c:1646  */
+#line 954 "parser.ypp" /* yacc.c:1646  */
     { 
+		//1.casting
 		(yyval) = new ExpSymbol();
-		ExpSymbol* num0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		Terminal* real1 = dynamic_cast<Terminal*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		ExpSymbol* num0 = dynamic_cast<ExpSymbol*>((yyval));	
+		Terminal* real1 = dynamic_cast<Terminal*>((yyvsp[0]));	
+		//2.assignments
 		num0->place = var_table.block_tables.front().next_temp_reg(float_);	//update parent symbol place
 		num0->exp_type = float_;	//update parent symbol type
+		//3.execute assembly
 		string three_add_code = string("COPYF") + " " + num0->place + " " + real1->terminal_value;
 		code_buffer.emit(three_add_code);
 	}
-#line 2516 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2545 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 66:
-#line 943 "parser.ypp" /* yacc.c:1646  */
+#line 968 "parser.ypp" /* yacc.c:1646  */
     {  		//---------------------------------------------rule below finished-------------------------------------
+		//1.casting
 		(yyval) = new ExpSymbol();
-		ExpSymbol* call0 = dynamic_cast<ExpSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		Terminal* id1 = dynamic_cast<Terminal*>((yyvsp[-3]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		CallArgsSymbol* call_args1 = dynamic_cast<CallArgsSymbol*>((yyvsp[-1]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		ExpSymbol* call0 = dynamic_cast<ExpSymbol*>((yyval));
+		Terminal* id1 = dynamic_cast<Terminal*>((yyvsp[-3]));	
+		CallArgsSymbol* call_args1 = dynamic_cast<CallArgsSymbol*>((yyvsp[-1]));	
+		//2.finds the func 'ID' in function table
 		Function_Table_Entry* func_entry = func_table.find_func_entry(id1->terminal_value);
 		if(func_entry == NULL){
 			string err = "function '" + id1->terminal_value + "' is not declared";
 			semantic_err(err);
 		}
+		//3.check if number of args are matching
 		if(call_args1->exp_args.size() != func_entry->func_args.size()){
             string err = string("wrong number of arguments passed to function '") + id1->terminal_value +"'";
 			semantic_err(err);
 		}
-
+		//4.store caller saved registers and RA,DP, and FP caller registers
 		string three_add_code;
 		var_table.store();	//for each var: Mem[SP++] = var
         three_add_code = string("STORI") + " " + RA + " " + SP + " " + "0";	//Mem[SP] = RA
@@ -2541,17 +2572,17 @@ yyreduce:
         code_buffer.emit(three_add_code); 
 		three_add_code = string("STORI") + " " + FP + " " + SP + " " + "8";	//Mem[SP+2*4] = FP
         code_buffer.emit(three_add_code); 
-
-		three_add_code = string("ADD2I") + " " + FP + " " + SP + " " + "8";	//updating frame pointer (need clearer explanation)
+		//5.updating frame pointer 
+		three_add_code = string("ADD2I") + " " + FP + " " + SP + " " + "8";	
 		code_buffer.emit(three_add_code);
 
 		//Cast FP to FP_F 
         three_add_code = string("CITOF") + " " + FP_F + " " + FP;
 		code_buffer.emit(three_add_code);
 
-		/***** pre-call - store arguments, update dp and sp *****/
+		/*****6. pre-call - store arguments, update dp and sp *****/
 		
-		//store arguments in stack before call
+		//store arguments for callee in stack before call
 		int i = 1;	
         auto func_arg_it = func_entry->func_args.begin();
         auto exp_arg_it = call_args1->exp_args.begin();
@@ -2562,7 +2593,7 @@ yyreduce:
 				string err = string("rule 3: wrong type of argument passed to function '") + func_arg_it->id +"'";
 				semantic_err(err);
 			}
-			//optional types check
+			//store arguments according to their type
             if(func_arg_it->type == int_){
                 three_add_code = string("STORI") + " " + exp_arg_it->place + " " + FP + " " + to_string(i * 4);
 				code_buffer.emit(three_add_code);
@@ -2575,10 +2606,10 @@ yyreduce:
             }
 		}
 
-		//set DP on the first arg
+		//update DP to point on the first arg
         three_add_code = string("ADD2I") + + " " DP + " " + FP + " " + to_string(4);
 		code_buffer.emit(three_add_code);
-        //set SP above arguments
+        //update SP to point above arguments
 		three_add_code = string("ADD2I") + " " + SP + " " + FP + " " + to_string((func_entry->func_args.size() + 1) * 4);
         code_buffer.emit(three_add_code);
         
@@ -2586,11 +2617,11 @@ yyreduce:
         three_add_code = string("JLINK") + " " + func_entry->get_func_def_place(code_buffer.nextquad());
         code_buffer.emit(three_add_code);
 
-		/***** post-call - restore SP, FP *****/
+		/*****7. post-call - close stack of callee, restore FP,DP,RA and saved registers of caller *****/
         
-		three_add_code = string("COPYI") + " " + SP + " " + FP; //SP = FP
+		three_add_code = string("COPYI") + " " + SP + " " + FP;					//SP = FP
         code_buffer.emit(three_add_code);
-		three_add_code = string("LOADI") + " " + FP + " " + FP + " " + "0";	//FP = Mem[FP+0]	
+		three_add_code = string("LOADI") + " " + FP + " " + FP + " " + "0";		//FP = Mem[FP]	
         code_buffer.emit(three_add_code);
 		three_add_code = string("SUBTI") + " " + SP + " " + SP + " " + "8";		//SP-=2*4
         code_buffer.emit(three_add_code); 
@@ -2600,13 +2631,12 @@ yyreduce:
         code_buffer.emit(three_add_code); 
         var_table.load();  //for each var: var = Mem[--SP]
 
-		//update parent symbol
+		//8.update return type and value of parent symbol
 
-		call0->exp_type = func_entry->ret_type;	//updates return type
-        //store the return value
+		call0->exp_type = func_entry->ret_type;	//updates parent return type
         if(func_entry->ret_type == int_){
                 call0->place = var_table.block_tables.front().next_temp_reg(int_);
-                three_add_code = string("COPYI") + " " + call0->place + " " + RT_I;	//doesn't have this line in the example
+                three_add_code = string("COPYI") + " " + call0->place + " " + RT_I;	
 				code_buffer.emit(three_add_code);
         } else if(func_entry->ret_type == float_){
                 call0->place = var_table.block_tables.front().next_temp_reg(float_);
@@ -2614,77 +2644,80 @@ yyreduce:
 				code_buffer.emit(three_add_code);
         }
 
-        
-
 	}
-#line 2621 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2649 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 67:
-#line 1045 "parser.ypp" /* yacc.c:1646  */
+#line 1069 "parser.ypp" /* yacc.c:1646  */
     { 		//---------------------------------------------rule below finished-----------------------------------------
+		//1.casting
 		(yyval) = new CallArgsSymbol();
-		CallArgsSymbol* call_arg0 = dynamic_cast<CallArgsSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		CallArgsSymbol* call_arglist1 = dynamic_cast<CallArgsSymbol*>((yyvsp[0]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		CallArgsSymbol* call_arg0 = dynamic_cast<CallArgsSymbol*>((yyval));	
+		CallArgsSymbol* call_arglist1 = dynamic_cast<CallArgsSymbol*>((yyvsp[0]));
+		//2.assignments
 		call_arg0->exp_args = call_arglist1->exp_args;	//parent symbol gets son symbol expressions
 	}
-#line 2633 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2662 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 68:
-#line 1052 "parser.ypp" /* yacc.c:1646  */
+#line 1077 "parser.ypp" /* yacc.c:1646  */
     { 
 		(yyval) = new CallArgsSymbol();
 	}
-#line 2641 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2670 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 69:
-#line 1057 "parser.ypp" /* yacc.c:1646  */
+#line 1082 "parser.ypp" /* yacc.c:1646  */
     { 		//---------------------------------------------rule below finished-----------------------------
+		//1.casting
 		(yyval) = new CallArgsSymbol();
-		CallArgsSymbol* call_arglist0 = dynamic_cast<CallArgsSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		CallArgsSymbol* call_arglist1 = dynamic_cast<CallArgsSymbol*>((yyvsp[-2]));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		ExpSymbol* exp = dynamic_cast<ExpSymbol*>((yyvsp[0]));					//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		CallArgsSymbol* call_arglist0 = dynamic_cast<CallArgsSymbol*>((yyval));	
+		CallArgsSymbol* call_arglist1 = dynamic_cast<CallArgsSymbol*>((yyvsp[-2]));	
+		ExpSymbol* exp = dynamic_cast<ExpSymbol*>((yyvsp[0]));	
+		//2.check if void
 		if(exp->exp_type == void_t){
 			semantic_err("rule 2: can't declare function parameter of type void");
 		}
+		//3.assignments
 		call_arglist0->exp_args = call_arglist1->exp_args;	//parent symbol gets son symbol expressions
 		call_arglist0->exp_args.push_back(*exp);			//adding exp to parent expression vector
 
 	}
-#line 2659 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2690 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 70:
-#line 1070 "parser.ypp" /* yacc.c:1646  */
+#line 1097 "parser.ypp" /* yacc.c:1646  */
     { 
+		//1.casting
 		(yyval) = new CallArgsSymbol();
-		CallArgsSymbol* call_arglist0 = dynamic_cast<CallArgsSymbol*>((yyval));	//don't know if necessary, maybe work dircetly through $$,S1,...
-		ExpSymbol* exp = dynamic_cast<ExpSymbol*>((yyvsp[0]));					//don't know if necessary, maybe work dircetly through $$,S1,...
-
+		CallArgsSymbol* call_arglist0 = dynamic_cast<CallArgsSymbol*>((yyval));
+		ExpSymbol* exp = dynamic_cast<ExpSymbol*>((yyvsp[0]));	
+		//2.check if void
 		if(exp->exp_type == void_t){
 			semantic_err("rule 2: can't declare func parameter of type void");
 		}
+		//3.assignments
 		call_arglist0->exp_args.push_back(*exp);			//adding exp to parent expression vector
 	}
-#line 2674 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2707 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 71:
-#line 1082 "parser.ypp" /* yacc.c:1646  */
+#line 1111 "parser.ypp" /* yacc.c:1646  */
     {		//---------------------------------------------rule below finished-------------------------------------------------
 		Marker_M_Symbol* M = new Marker_M_Symbol();
 		M->quad = code_buffer.nextquad();
 		(yyval) = M;
 	}
-#line 2684 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2717 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
   case 72:
-#line 1089 "parser.ypp" /* yacc.c:1646  */
+#line 1118 "parser.ypp" /* yacc.c:1646  */
     {		//---------------------------------------------rule below finished-------------------------------------------------
 		Marker_N_Symbol* N = new Marker_N_Symbol();
 		N->nextlist.push_back(code_buffer.nextquad());
@@ -2692,11 +2725,11 @@ yyreduce:
 		code_buffer.emit(jump);
 		(yyval) = N;
 	}
-#line 2696 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2729 "parser.tab.cpp" /* yacc.c:1646  */
     break;
 
 
-#line 2700 "parser.tab.cpp" /* yacc.c:1646  */
+#line 2733 "parser.tab.cpp" /* yacc.c:1646  */
       default: break;
     }
   /* User semantic actions sometimes alter yychar, and that requires
@@ -2924,22 +2957,25 @@ yyreturn:
 #endif
   return yyresult;
 }
-#line 1098 "parser.ypp" /* yacc.c:1906  */
+#line 1127 "parser.ypp" /* yacc.c:1906  */
 
 
 /* Bison Epilogue */
 
+//print syntax errors - code 2
 void yyerror(const char*){
 	printf("Syntax error: '%s' in line number %d\n", yytext, yylineno);
 	exit(2);
 }
 
+//print semantic errors - code 3
 void semantic_err(string err){
 	const char* message = err.c_str();
 	printf("Semantic error: %s in line number %d\n", message, yylineno);
 	exit(3);
 }
 
+//print operational errors - code 9
 void operational_err(string err){
 	const char* message = err.c_str();
 	printf("Operational error: %s\n", message);

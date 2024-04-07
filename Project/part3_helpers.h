@@ -15,7 +15,7 @@
 using namespace std;
 
 void operational_err(string err);
-bool replace(string& str, const string& src, const string& dst);    //TODO change func name
+bool replace_str(string& str, const string& src, const string& dst);    //TODO change func name
 
 #define YYSTYPE Node* // changed yylval type to Node*
 

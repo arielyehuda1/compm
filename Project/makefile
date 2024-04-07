@@ -1,6 +1,6 @@
 #makefile to create executable compiler
 
-CC = g++ -std=c++11 -fmax-errors=3 -o 
+CC = g++ -std=c++11 -o 
 LEX = flex
 YACC = bison
 
@@ -16,4 +16,4 @@ part3:	lex.yy.c parser.tab.cpp part3_helpers.cpp part3_helpers.h
 	$(CC) rx-cc parser.tab.cpp lex.yy.c part3_helpers.cpp 
 
 clean:
-	rm -f *.o parser.tab.cpp lex.yy.c parser.tab.h *.gch rx-cc
+	rm -f *.o parser.tab.cpp lex.yy.c parser.tab.hpp parser.output
